@@ -62,6 +62,7 @@ find_package(Pangolin REQUIRED)
 add_message_files(
   FILES
   KeyFrame.msg
+  KeyFrameList.msg
 )
 
 add_service_files(
