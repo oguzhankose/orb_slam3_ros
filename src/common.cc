@@ -12,7 +12,7 @@ ORB_SLAM3::System::eSensor sensor_type = ORB_SLAM3::System::NOT_SET;
 
 // Variables for ROS
 std::string world_frame_id, cam_frame_id, imu_frame_id;
-ros::Publisher pose_pub, odom_pub, kf_markers_pub;
+ros::Publisher pose_pub, odom_pub, kf_markers_pub, key_frame_list_pub;
 ros::Publisher tracked_mappoints_pub, all_mappoints_pub;
 image_transport::Publisher tracking_img_pub;
 
@@ -73,6 +73,8 @@ void setup_publishers(ros::NodeHandle &node_handler, image_transport::ImageTrans
 
     kf_markers_pub = node_handler.advertise<visualization_msgs::Marker>(node_name + "/kf_markers", 1000);
 
+    key_frame_list_pub = node_handler.advertise<orb_slam3_ros::KeyFrameList>(node_name + "/keyframes", 1000);
+
     if (sensor_type == ORB_SLAM3::System::IMU_MONOCULAR || sensor_type == ORB_SLAM3::System::IMU_STEREO || sensor_type == ORB_SLAM3::System::IMU_RGBD)
     {
         odom_pub = node_handler.advertise<nav_msgs::Odometry>(node_name + "/body_odom", 1);
@@ -94,6 +96,7 @@ void publish_topics(ros::Time msg_time, Eigen::Vector3f Wbb)
     publish_tracked_points(pSLAM->GetTrackedMapPoints(), msg_time);
     publish_all_points(pSLAM->GetAllMapPoints(), msg_time);
     publish_kf_markers(pSLAM->GetAllKeyframePoses(), msg_time);
+    publish_keyframes(pSLAM->GetAllKeyframePosesWithId(), msg_time);
 
     // IMU-specific topics
     if (sensor_type == ORB_SLAM3::System::IMU_MONOCULAR || sensor_type == ORB_SLAM3::System::IMU_STEREO || sensor_type == ORB_SLAM3::System::IMU_RGBD)
@@ -224,6 +227,11 @@ void publish_kf_markers(std::vector<Sophus::SE3f> vKFposes, ros::Time msg_time)
     }
     
     kf_markers_pub.publish(kf_markers);
+}
+
+void publish_keyframes(std::vector<ORB_SLAM3::PoseWithId>, ros::Time)
+{
+
 }
 
 //////////////////////////////////////////////////
