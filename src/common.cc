@@ -229,9 +229,29 @@ void publish_kf_markers(std::vector<Sophus::SE3f> vKFposes, ros::Time msg_time)
     kf_markers_pub.publish(kf_markers);
 }
 
-void publish_keyframes(std::vector<ORB_SLAM3::PoseWithId>, ros::Time)
+void publish_keyframes(std::vector<ORB_SLAM3::PoseWithId> keyframes, ros::Time time)
 {
+    int numKFs = keyframes.size();
+    if(numKFs == 0)
+        return;
 
+    orb_slam3_ros::KeyFrameList keyframe_list;
+    keyframe_list.header.frame_id = world_frame_id;
+    keyframe_list.header.stamp = time;
+
+    for(int i = 0; i < numKFs; i++)
+    {
+        orb_slam3_ros::KeyFrame keyframe;
+        keyframe.pose.position.x = keyframes[i].pose.translation().x();
+        keyframe.pose.position.y = keyframes[i].pose.translation().y();
+        keyframe.pose.position.z = keyframes[i].pose.translation().z();
+        keyframe.pose.orientation.w = 1.0;
+        keyframe.id = keyframes[i].id;
+
+        keyframe_list.keyframes.push_back(keyframe);
+    }
+
+    key_frame_list_pub.publish(keyframe_list);
 }
 
 //////////////////////////////////////////////////
