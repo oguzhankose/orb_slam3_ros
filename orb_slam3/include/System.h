@@ -44,6 +44,11 @@
 namespace ORB_SLAM3
 {
 
+struct PoseWithId{
+    Sophus::SE3f pose;
+    int id;
+};
+
 class Verbose
 {
 public:
@@ -179,6 +184,7 @@ public:
     std::vector<cv::KeyPoint> GetTrackedKeyPointsUn();
     std::vector<MapPoint*> GetAllMapPoints();
     std::vector<Sophus::SE3f> GetAllKeyframePoses();
+    std::vector<PoseWithId> GetAllKeyframePosesWithId();
     cv::Mat GetCurrentFrame();
 
     Sophus::SE3f GetCamTwc();

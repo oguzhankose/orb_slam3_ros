@@ -1595,6 +1595,37 @@ vector<Sophus::SE3f> System::GetAllKeyframePoses()
     return vKFposes;
 }
 
+vector<PoseWithId> System::GetAllKeyframePosesWithId()
+{
+    vector<KeyFrame *> vpKFs = mpAtlas->GetAllKeyFrames();
+    sort(vpKFs.begin(), vpKFs.end(), KeyFrame::lId);
+
+    vector<PoseWithId> vKFposes;
+
+    for (size_t i = 0; i < vpKFs.size(); i++)
+    {
+        KeyFrame *pKF = vpKFs[i];
+
+        if (pKF->isBad())
+            continue;
+
+        // Twb can be world frame to cam0 frame (without IMU) or body in world frame (with IMU)
+        Sophus::SE3f Twb;
+        if (mSensor == IMU_MONOCULAR || mSensor == IMU_STEREO || mSensor == IMU_RGBD) // with IMU
+            Twb = vpKFs[i]->GetImuPose();
+        else // without IMU
+            Twb = vpKFs[i]->GetPoseInverse();
+
+        PoseWithId poseWithId;
+        poseWithId.pose = Twb;
+        poseWithId.id = pKF->mnId;
+
+        vKFposes.push_back(poseWithId);
+    }
+
+    return vKFposes;
+}
+
 bool System::SaveMap(const string &filename)
 {
     mStrSaveAtlasToFile = filename;
