@@ -59,6 +59,11 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Eigen3 3.1.0 REQUIRED)
 find_package(Pangolin REQUIRED)
 
+add_message_files(
+  FILES
+  KeyFrame.msg
+)
+
 add_service_files(
   FILES
   SaveMap.srv
@@ -67,6 +72,7 @@ add_service_files(
 generate_messages(
   DEPENDENCIES
   std_msgs
+  geometry_msgs
 )
 
 catkin_package (
