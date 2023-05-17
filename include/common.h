@@ -27,8 +27,8 @@
 #include <message_filters/time_synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
 
-#include <orb_slam3_ros/KeyFrame.h>
-#include <orb_slam3_ros/KeyFrameList.h>
+#include <orb_slam3_ros_msgs/KeyFrame.h>
+#include <orb_slam3_ros_msgs/KeyFrameList.h>
 #include <orb_slam3_ros/SaveMap.h> // This file is created automatically, see here http://wiki.ros.org/ROS/Tutorials/CreatingMsgAndSrv#Creating_a_srv
 
 // ORB-SLAM3-specific libraries

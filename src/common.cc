@@ -73,7 +73,7 @@ void setup_publishers(ros::NodeHandle &node_handler, image_transport::ImageTrans
 
     kf_markers_pub = node_handler.advertise<visualization_msgs::Marker>(node_name + "/kf_markers", 1000);
 
-    key_frame_list_pub = node_handler.advertise<orb_slam3_ros::KeyFrameList>(node_name + "/keyframes", 1000);
+    key_frame_list_pub = node_handler.advertise<orb_slam3_ros_msgs::KeyFrameList>(node_name + "/keyframes", 1000);
 
     if (sensor_type == ORB_SLAM3::System::IMU_MONOCULAR || sensor_type == ORB_SLAM3::System::IMU_STEREO || sensor_type == ORB_SLAM3::System::IMU_RGBD)
     {
@@ -235,13 +235,13 @@ void publish_keyframes(std::vector<ORB_SLAM3::PoseWithId> keyframes, ros::Time t
     if(numKFs == 0)
         return;
 
-    orb_slam3_ros::KeyFrameList keyframe_list;
+    orb_slam3_ros_msgs::KeyFrameList keyframe_list;
     keyframe_list.header.frame_id = world_frame_id;
     keyframe_list.header.stamp = time;
 
     for(int i = 0; i < numKFs; i++)
     {
-        orb_slam3_ros::KeyFrame keyframe;
+        orb_slam3_ros_msgs::KeyFrame keyframe;
         keyframe.pose.position.x = keyframes[i].pose.translation().x();
         keyframe.pose.position.y = keyframes[i].pose.translation().y();
         keyframe.pose.position.z = keyframes[i].pose.translation().z();
