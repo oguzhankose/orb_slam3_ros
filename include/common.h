@@ -29,6 +29,7 @@
 
 #include <orb_slam3_ros_msgs/KeyFrame.h>
 #include <orb_slam3_ros_msgs/KeyFrameList.h>
+#include <orb_slam3_ros_msgs/KeyFrameListWithCameraPose.h>
 #include <orb_slam3_ros/SaveMap.h> // This file is created automatically, see here http://wiki.ros.org/ROS/Tutorials/CreatingMsgAndSrv#Creating_a_srv
 
 // ORB-SLAM3-specific libraries
@@ -56,6 +57,7 @@ void publish_tf_transform(Sophus::SE3f, string, string, ros::Time);
 void publish_body_odom(Sophus::SE3f, Eigen::Vector3f, Eigen::Vector3f, ros::Time);
 void publish_kf_markers(std::vector<Sophus::SE3f>, ros::Time);
 void publish_keyframes(std::vector<ORB_SLAM3::PoseWithId>, ros::Time);
+void publish_keyframes_with_camera_pose(std::vector<ORB_SLAM3::PoseWithId>, ros::Time);
 
 bool save_map_srv(orb_slam3_ros::SaveMap::Request&, orb_slam3_ros::SaveMap::Response&);
 bool save_traj_srv(orb_slam3_ros::SaveMap::Request&, orb_slam3_ros::SaveMap::Response&);

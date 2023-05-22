@@ -13,7 +13,7 @@ ORB_SLAM3::System::eSensor sensor_type = ORB_SLAM3::System::NOT_SET;
 // Variables for ROS
 std::string world_frame_id, cam_frame_id, imu_frame_id;
 ros::Publisher pose_pub, odom_pub, kf_markers_pub, key_frame_list_pub;
-ros::Publisher tracked_mappoints_pub, all_mappoints_pub;
+ros::Publisher tracked_mappoints_pub, all_mappoints_pub, key_frame_list_with_camera_pose_pub;
 image_transport::Publisher tracking_img_pub;
 
 //////////////////////////////////////////////////
@@ -75,6 +75,8 @@ void setup_publishers(ros::NodeHandle &node_handler, image_transport::ImageTrans
 
     key_frame_list_pub = node_handler.advertise<orb_slam3_ros_msgs::KeyFrameList>(node_name + "/keyframes", 1000);
 
+    key_frame_list_with_camera_pose_pub = node_handler.advertise<orb_slam3_ros_msgs::KeyFrameListWithCameraPose>(node_name + "/keyframes_with_camera_pose", 1000);
+
     if (sensor_type == ORB_SLAM3::System::IMU_MONOCULAR || sensor_type == ORB_SLAM3::System::IMU_STEREO || sensor_type == ORB_SLAM3::System::IMU_RGBD)
     {
         odom_pub = node_handler.advertise<nav_msgs::Odometry>(node_name + "/body_odom", 1);
@@ -97,6 +99,7 @@ void publish_topics(ros::Time msg_time, Eigen::Vector3f Wbb)
     publish_all_points(pSLAM->GetAllMapPoints(), msg_time);
     publish_kf_markers(pSLAM->GetAllKeyframePoses(), msg_time);
     publish_keyframes(pSLAM->GetAllKeyframePosesWithId(), msg_time);
+    publish_keyframes_with_camera_pose(pSLAM->GetAllKeyframePosesWithId(), msg_time);
 
     // IMU-specific topics
     if (sensor_type == ORB_SLAM3::System::IMU_MONOCULAR || sensor_type == ORB_SLAM3::System::IMU_STEREO || sensor_type == ORB_SLAM3::System::IMU_RGBD)
@@ -252,6 +255,43 @@ void publish_keyframes(std::vector<ORB_SLAM3::PoseWithId> keyframes, ros::Time t
     }
 
     key_frame_list_pub.publish(keyframe_list);
+}
+
+void publish_keyframes_with_camera_pose(std::vector<ORB_SLAM3::PoseWithId> keyframes, ros::Time time)
+{
+    int numKFs = keyframes.size();
+    if(numKFs == 0)
+        return;
+
+    orb_slam3_ros_msgs::KeyFrameListWithCameraPose keyframe_list;
+    keyframe_list.header.frame_id = world_frame_id;
+    keyframe_list.header.stamp = time;
+
+    Sophus::SE3f camera_pose = pSLAM->GetCamTwc();
+    keyframe_list.camera.position.x = camera_pose.translation().x();
+    keyframe_list.camera.position.y = camera_pose.translation().y();
+    keyframe_list.camera.position.z = camera_pose.translation().z();
+
+    keyframe_list.camera.orientation.w = camera_pose.unit_quaternion().coeffs().w();
+    keyframe_list.camera.orientation.x = camera_pose.unit_quaternion().coeffs().x();
+    keyframe_list.camera.orientation.y = camera_pose.unit_quaternion().coeffs().y();
+    keyframe_list.camera.orientation.z = camera_pose.unit_quaternion().coeffs().z();
+
+    for(int i = 0; i < numKFs; i++)
+    {
+        orb_slam3_ros_msgs::KeyFrame keyframe;
+        keyframe.id = keyframes[i].id;
+
+        keyframe.pose.position.x = keyframes[i].pose.translation().x();
+        keyframe.pose.position.y = keyframes[i].pose.translation().y();
+        keyframe.pose.position.z = keyframes[i].pose.translation().z();
+
+        keyframe.pose.orientation.x = keyframes[i].pose.unit_quaternion().coeffs().x();
+
+        keyframe_list.keyframes.push_back(keyframe);
+    }
+
+    key_frame_list_with_camera_pose_pub.publish(keyframe_list);
 }
 
 //////////////////////////////////////////////////
