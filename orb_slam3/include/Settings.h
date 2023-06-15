@@ -144,6 +144,9 @@ namespace ORB_SLAM3 {
             }
         }
 
+        // SAHA LOCALIZATION ONLY MODE // 
+        void readOperationMode(cv::FileStorage& fSettings);
+        
         void readCamera1(cv::FileStorage& fSettings);
         void readCamera2(cv::FileStorage& fSettings);
         void readImageInfo(cv::FileStorage& fSettings);

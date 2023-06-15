@@ -201,6 +201,10 @@ public:
 
     float GetImageScale();
 
+    // SAHA LOCALIZATION ONLY MODE //
+    int localizationOnlyMode;
+
+
 #ifdef REGISTER_TIMES
     void InsertRectTime(double& time);
     void InsertResizeTime(double& time);
@@ -277,6 +281,7 @@ private:
     string mStrVocabularyFilePath;
 
     Settings* settings_;
+
 };
 
 }// namespace ORB_SLAM

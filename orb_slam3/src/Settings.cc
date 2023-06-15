@@ -32,6 +32,32 @@ using namespace std;
 
 namespace ORB_SLAM3 {
 
+    // SAHA LOCALIZATION ONLY MODE // 
+    template<>
+    bool Settings::readParameter<bool>(cv::FileStorage& fSettings, const std::string& name, bool& found, const bool required){
+        cv::FileNode node = fSettings[name];
+        if(node.empty()){
+            if(required){
+                std::cerr << name << " required parameter does not exist, aborting..." << std::endl;
+                exit(-1);
+            }
+            else{
+                std::cerr << name << " optional parameter does not exist..." << std::endl;
+                found = false;
+                return 0.0f;
+            }
+        }
+        else if(!node.isInt()){
+            std::cerr << name << " parameter must be a boolean, aborting..." << std::endl;
+            exit(-1);
+        }
+        else{
+            found = true;
+            return node.operator int();
+        }
+    }
+    // SAHA LOCALIZATION ONLY MODE // 
+
     template<>
     float Settings::readParameter<float>(cv::FileStorage& fSettings, const std::string& name, bool& found, const bool required){
         cv::FileNode node = fSettings[name];
@@ -166,6 +192,12 @@ namespace ORB_SLAM3 {
 
         readORB(fSettings);
         cout << "\t-Loaded ORB settings" << endl;
+
+        // SAHA LOCALIZATION ONLY MODE // 
+            readOperationMode(fSettings);
+            cout << "\t-Loaded ORB settings" << endl;
+        // SAHA LOCALIZATION ONLY MODE // 
+
         readViewer(fSettings);
         cout << "\t-Loaded viewer settings" << endl;
         readLoadAndSave(fSettings);
@@ -180,6 +212,14 @@ namespace ORB_SLAM3 {
 
         cout << "----------------------------------" << endl;
     }
+
+    // SAHA LOCALIZATION ONLY MODE // 
+    void Settings::readOperationMode(cv::FileStorage &fSettings) {
+        bool found;
+        //Read operation mode
+        bool localizationOnlyMode = readParameter<bool>(fSettings,"System.localizationOnlyMode",found);
+    }
+    // SAHA LOCALIZATION ONLY MODE // 
 
     void Settings::readCamera1(cv::FileStorage &fSettings) {
         bool found;

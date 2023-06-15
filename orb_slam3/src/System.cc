@@ -105,6 +105,9 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         activeLC = static_cast<int>(fsSettings["loopClosing"]) != 0;
     }
 
+    // SAHA LOCALIZATION ONLY MODE //
+    localizationOnlyMode = fsSettings["System.localizationOnlyMode"];
+
     mStrVocabularyFilePath = strVocFile;
     
     //Load ORB Vocabulary
@@ -191,19 +194,32 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     //Initialize the Loop Closing thread and launch
     // mSensor!=MONOCULAR && mSensor!=IMU_MONOCULAR
-    mpLoopCloser = new LoopClosing(mpAtlas, mpKeyFrameDatabase, mpVocabulary, mSensor!=MONOCULAR, activeLC); // mSensor!=MONOCULAR);
-    mptLoopClosing = new thread(&ORB_SLAM3::LoopClosing::Run, mpLoopCloser);
 
+    // SAHA LOCALIZATION ONLY MODE //
+    if(!localizationOnlyMode){
+
+        std::cout << "Starting loop closure algorithm" << std::endl;
+
+        mpLoopCloser = new LoopClosing(mpAtlas, mpKeyFrameDatabase, mpVocabulary, mSensor!=MONOCULAR, activeLC); // mSensor!=MONOCULAR);
+        mptLoopClosing = new thread(&ORB_SLAM3::LoopClosing::Run, mpLoopCloser);
+    }
+    
     //Set pointers between threads
     mpTracker->SetLocalMapper(mpLocalMapper);
-    mpTracker->SetLoopClosing(mpLoopCloser);
+
+    // SAHA LOCALIZATION ONLY MODE //
+    if(!localizationOnlyMode){
+        mpTracker->SetLoopClosing(mpLoopCloser);
+    }
 
     mpLocalMapper->SetTracker(mpTracker);
-    mpLocalMapper->SetLoopCloser(mpLoopCloser);
 
-    mpLoopCloser->SetTracker(mpTracker);
-    mpLoopCloser->SetLocalMapper(mpLocalMapper);
-
+    // SAHA LOCALIZATION ONLY MODE //
+    if(!localizationOnlyMode){
+        mpLocalMapper->SetLoopCloser(mpLoopCloser);
+        mpLoopCloser->SetTracker(mpTracker);
+        mpLoopCloser->SetLocalMapper(mpLocalMapper);
+    }
     //usleep(10*1000*1000);
 
     //Initialize the Viewer thread and launch
@@ -212,9 +228,14 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         mpViewer = new Viewer(this, mpFrameDrawer,mpMapDrawer,mpTracker,strSettingsFile,settings_);
         mptViewer = new thread(&Viewer::Run, mpViewer);
         mpTracker->SetViewer(mpViewer);
-        mpLoopCloser->mpViewer = mpViewer;
+        // SAHA LOCALIZATION ONLY MODE //
+        if(!localizationOnlyMode){
+            mpLoopCloser->mpViewer = mpViewer;
+        }
         mpViewer->both = mpFrameDrawer->both;
     }
+
+
 
     // Fix verbosity
     Verbose::SetTh(Verbose::VERBOSITY_QUIET);
@@ -502,7 +523,12 @@ void System::Shutdown()
     cout << "Shutdown" << endl;
 
     mpLocalMapper->RequestFinish();
-    mpLoopCloser->RequestFinish();
+
+    // SAHA LOCALIZATION ONLY MODE //
+    //Check settings file
+    if(!localizationOnlyMode){
+        mpLoopCloser->RequestFinish();
+    }
     /*if(mpViewer)
     {
         mpViewer->RequestFinish();
