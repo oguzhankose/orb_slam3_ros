@@ -1838,11 +1838,15 @@ void Tracking::Track()
         mbStep = false;
     }
 
-    if(mpLocalMapper->mbBadImu)
-    {
-        cout << "TRACK: Reset map because local mapper set the bad imu flag " << endl;
-        mpSystem->ResetActiveMap();
-        return;
+    // if(mpLocalMapper->mbBadImu)
+    // SAHA LOCALIZATION ONLY MODE //
+    if(mpSystem->localizationOnlyMode!=1){
+        if(mpLocalMapper->mbBadImu)
+        {
+            cout << "TRACK: Reset map because local mapper set the bad imu flag " << endl;
+            mpSystem->ResetActiveMap();
+            return;
+        }
     }
 
     Map* pCurrentMap = mpAtlas->GetCurrentMap();
@@ -2458,7 +2462,10 @@ void Tracking::StereoInitialization()
 
         //cout << "Active map: " << mpAtlas->GetCurrentMap()->GetId() << endl;
 
-        mpLocalMapper->InsertKeyFrame(pKFini);
+        // SAHA LOCALIZATION ONLY MODE //
+        if(mpSystem->localizationOnlyMode!=1){
+            mpLocalMapper->InsertKeyFrame(pKFini);
+        }
 
         mLastFrame = Frame(mCurrentFrame);
         mnLastKeyFrameId = mCurrentFrame.mnId;
@@ -2770,7 +2777,7 @@ bool Tracking::TrackReferenceKeyFrame()
 
     if(nmatches<15)
     {
-        cout << "TRACK_REF_KF: Less than 15 matches!!\n";
+        cout << "TRACK_REF_KF: Less than 15 matches!!" << "Match count: " << to_string(nmatches) << "\n";
         return false;
     }
 
@@ -3888,17 +3895,20 @@ void Tracking::ResetActiveMap(bool bLocMap)
 
     Map* pMap = mpAtlas->GetCurrentMap();
 
-    if (!bLocMap)
-    {
-        Verbose::PrintMess("Reseting Local Mapper...", Verbose::VERBOSITY_VERY_VERBOSE);
-        mpLocalMapper->RequestResetActiveMap(pMap);
-        Verbose::PrintMess("done", Verbose::VERBOSITY_VERY_VERBOSE);
-    }
+    // SAHA LOCALIZATION ONLY MODE //
+    if(mpSystem->localizationOnlyMode!=1){
+        if (!bLocMap)
+        {
+            Verbose::PrintMess("Reseting Local Mapper...", Verbose::VERBOSITY_VERY_VERBOSE);
+            mpLocalMapper->RequestResetActiveMap(pMap);
+            Verbose::PrintMess("done", Verbose::VERBOSITY_VERY_VERBOSE);
+        }
 
-    // Reset Loop Closing
-    Verbose::PrintMess("Reseting Loop Closing...", Verbose::VERBOSITY_NORMAL);
-    mpLoopClosing->RequestResetActiveMap(pMap);
-    Verbose::PrintMess("done", Verbose::VERBOSITY_NORMAL);
+        // Reset Loop Closing
+        Verbose::PrintMess("Reseting Loop Closing...", Verbose::VERBOSITY_NORMAL);
+        mpLoopClosing->RequestResetActiveMap(pMap);
+        Verbose::PrintMess("done", Verbose::VERBOSITY_NORMAL);
+    }
 
     // Clear BoW Database
     Verbose::PrintMess("Reseting Database", Verbose::VERBOSITY_NORMAL);

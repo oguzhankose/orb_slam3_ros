@@ -147,7 +147,6 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         }
         //mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);
 
-
         //cout << "KF in DB: " << mpKeyFrameDatabase->mnNumKFs << "; words: " << mpKeyFrameDatabase->mnNumWords << endl;
 
         loadedAtlas = true;
@@ -175,51 +174,44 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer, mpMapDrawer,
                              mpAtlas, mpKeyFrameDatabase, strSettingsFile, mSensor, settings_, strSequence);
 
-    //Initialize the Local Mapping thread and launch
-    mpLocalMapper = new LocalMapping(this, mpAtlas, mSensor==MONOCULAR || mSensor==IMU_MONOCULAR,
-                                     mSensor==IMU_MONOCULAR || mSensor==IMU_STEREO || mSensor==IMU_RGBD, strSequence);
-    mptLocalMapping = new thread(&ORB_SLAM3::LocalMapping::Run,mpLocalMapper);
-    mpLocalMapper->mInitFr = initFr;
-    if(settings_)
-        mpLocalMapper->mThFarPoints = settings_->thFarPoints();
-    else
-        mpLocalMapper->mThFarPoints = fsSettings["thFarPoints"];
-    if(mpLocalMapper->mThFarPoints!=0)
-    {
-        cout << "Discard points further than " << mpLocalMapper->mThFarPoints << " m from current camera" << endl;
-        mpLocalMapper->mbFarPoints = true;
-    }
-    else
-        mpLocalMapper->mbFarPoints = false;
-
-    //Initialize the Loop Closing thread and launch
-    // mSensor!=MONOCULAR && mSensor!=IMU_MONOCULAR
-
     // SAHA LOCALIZATION ONLY MODE //
-    if(!localizationOnlyMode){
+    if(localizationOnlyMode!=1){
+
+        //Initialize the Local Mapping thread and launch
+        mpLocalMapper = new LocalMapping(this, mpAtlas, mSensor==MONOCULAR || mSensor==IMU_MONOCULAR,
+                                        mSensor==IMU_MONOCULAR || mSensor==IMU_STEREO || mSensor==IMU_RGBD, strSequence);
+        mptLocalMapping = new thread(&ORB_SLAM3::LocalMapping::Run,mpLocalMapper);
+        mpLocalMapper->mInitFr = initFr;
+        if(settings_)
+            mpLocalMapper->mThFarPoints = settings_->thFarPoints();
+        else
+            mpLocalMapper->mThFarPoints = fsSettings["thFarPoints"];
+        if(mpLocalMapper->mThFarPoints!=0)
+        {
+            cout << "Discard points further than " << mpLocalMapper->mThFarPoints << " m from current camera" << endl;
+            mpLocalMapper->mbFarPoints = true;
+        }
+        else
+            mpLocalMapper->mbFarPoints = false;
+
+        //Initialize the Loop Closing thread and launch
+        // mSensor!=MONOCULAR && mSensor!=IMU_MONOCULAR
 
         std::cout << "Starting loop closure algorithm" << std::endl;
 
         mpLoopCloser = new LoopClosing(mpAtlas, mpKeyFrameDatabase, mpVocabulary, mSensor!=MONOCULAR, activeLC); // mSensor!=MONOCULAR);
         mptLoopClosing = new thread(&ORB_SLAM3::LoopClosing::Run, mpLoopCloser);
-    }
-    
-    //Set pointers between threads
-    mpTracker->SetLocalMapper(mpLocalMapper);
+        
+        //Set pointers between threads
+        mpTracker->SetLocalMapper(mpLocalMapper);
 
-    // SAHA LOCALIZATION ONLY MODE //
-    if(!localizationOnlyMode){
-        mpTracker->SetLoopClosing(mpLoopCloser);
-    }
+        mpLocalMapper->SetTracker(mpTracker);
 
-    mpLocalMapper->SetTracker(mpTracker);
-
-    // SAHA LOCALIZATION ONLY MODE //
-    if(!localizationOnlyMode){
         mpLocalMapper->SetLoopCloser(mpLoopCloser);
         mpLoopCloser->SetTracker(mpTracker);
         mpLoopCloser->SetLocalMapper(mpLocalMapper);
     }
+
     //usleep(10*1000*1000);
 
     //Initialize the Viewer thread and launch
@@ -229,7 +221,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         mptViewer = new thread(&Viewer::Run, mpViewer);
         mpTracker->SetViewer(mpViewer);
         // SAHA LOCALIZATION ONLY MODE //
-        if(!localizationOnlyMode){
+        if(localizationOnlyMode!=1){
             mpLoopCloser->mpViewer = mpViewer;
         }
         mpViewer->both = mpFrameDrawer->both;
@@ -250,6 +242,8 @@ Sophus::SE3f System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, 
         exit(-1);
     }
 
+    // std::cout << "Starting Track Stereo" << std::endl;
+
     cv::Mat imLeftToFeed, imRightToFeed;
     if(settings_ && settings_->needToRectify()){
         cv::Mat M1l = settings_->M1l();
@@ -269,8 +263,9 @@ Sophus::SE3f System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, 
         imRightToFeed = imRight.clone();
     }
 
+    // SAHA LOCALIZATION ONLY MODE //
+    if(localizationOnlyMode!=1){
     // Check mode change
-    {
         unique_lock<mutex> lock(mMutexMode);
         if(mbActivateLocalizationMode)
         {
@@ -526,7 +521,7 @@ void System::Shutdown()
 
     // SAHA LOCALIZATION ONLY MODE //
     //Check settings file
-    if(!localizationOnlyMode){
+    if(localizationOnlyMode!=1){
         mpLoopCloser->RequestFinish();
     }
     /*if(mpViewer)
@@ -1441,9 +1436,10 @@ bool System::SaveAtlas(int type){
             mpAtlas->PreSave();
             // cout << "Finished presave operation" << endl;
 
-            string pathSaveFileName = "./";
+            // string pathSaveFileName = "./";
+            string pathSaveFileName = "";
             pathSaveFileName = pathSaveFileName.append(mStrSaveAtlasToFile);
-            pathSaveFileName = pathSaveFileName.append(".osa");
+            // pathSaveFileName = pathSaveFileName.append(".osa");
 
             string strVocabularyChecksum = CalculateCheckSum(mStrVocabularyFilePath,TEXT_FILE);
             std::size_t found = mStrVocabularyFilePath.find_last_of("/\\");
@@ -1489,9 +1485,10 @@ bool System::LoadAtlas(int type)
     string strFileVoc, strVocChecksum;
     bool isRead = false;
 
-    string pathLoadFileName = "./";
+    // string pathLoadFileName = "./";
+    string pathLoadFileName = "";
     pathLoadFileName = pathLoadFileName.append(mStrLoadAtlasFromFile);
-    pathLoadFileName = pathLoadFileName.append(".osa");
+    // pathLoadFileName = pathLoadFileName.append(".osa");
 
     if(type == TEXT_FILE) // File text
     {
