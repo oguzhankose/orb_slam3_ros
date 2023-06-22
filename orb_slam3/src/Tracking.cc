@@ -43,7 +43,7 @@ namespace ORB_SLAM3
 
 Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Atlas *pAtlas, KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor, Settings* settings, const string &_nameSeq):
     mState(NO_IMAGES_YET), mSensor(sensor), mTrackedFr(0), mbStep(false),
-    mbOnlyTracking(false), mbMapUpdated(false), mbVO(false), mpORBVocabulary(pVoc), mpKeyFrameDB(pKFDB),
+    mbOnlyTracking(true), mbMapUpdated(false), mbVO(false), mpORBVocabulary(pVoc), mpKeyFrameDB(pKFDB),
     mbReadyToInitializate(false), mpSystem(pSys), mpViewer(NULL), bStepByStep(false),
     mpFrameDrawer(pFrameDrawer), mpMapDrawer(pMapDrawer), mpAtlas(pAtlas), mnLastRelocFrameId(0), time_recently_lost(5.0),
     mnInitialFrameId(0), mbCreatedMap(false), mnFirstFrameId(0), mpCamera2(nullptr), mpLastKeyFrame(static_cast<KeyFrame*>(NULL))
@@ -93,6 +93,21 @@ Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer,
             }
         }
     }
+
+    // SAHA Added check for IMU fast init parameter //
+    cv::FileStorage fSettings(strSettingPath, cv::FileStorage::READ);
+    cv::FileNode node = fSettings["IMU.fastInit"];
+    mFastInit = false;
+    if(!node.empty())
+    {
+        mFastInit = static_cast<int>(fSettings["IMU.fastInit"]) != 0;
+    }
+    if(mFastInit==1)
+        cout << "Fast IMU initialization is enabled. Acceleration is not checked \n";
+    else{
+        cout << "Fast IMU initialization is disabled. Acceleration is being checked \n";
+    }
+
     
     // Obtain the angles which will be used to rotate the world frame
     Tc0w = Sophus::SE3f();
@@ -1906,6 +1921,9 @@ void Tracking::Track()
 
     mLastProcessedState=mState;
 
+    // SAHA
+    // cout << "state: " << mState << endl;
+
     if ((mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD) && !mbCreatedMap)
     {
 #ifdef REGISTER_TIMES
@@ -2093,7 +2111,14 @@ void Tracking::Track()
                     }
                     else
                     {
-                        bOK = TrackReferenceKeyFrame();
+                        // SAHA LOCALIZATION ONLY MODE // 
+                        if(mpSystem->localizationOnlyMode){
+                            bOK = false;
+                        }
+                        // SAHA LOCALIZATION ONLY MODE // 
+                        else{
+                            bOK = TrackReferenceKeyFrame();
+                        }
                     }
                 }
                 else
@@ -2175,19 +2200,27 @@ void Tracking::Track()
             // mbVO true means that there are few matches to MapPoints in the map. We cannot retrieve
             // a local map and therefore we do not perform TrackLocalMap(). Once the system relocalizes
             // the camera we will use the local map again.
+
+            // SAHA LOCALIZATION ONLY MODE // 
             if(bOK && !mbVO)
-                bOK = TrackLocalMap();
+                if(!(mpSystem->localizationOnlyMode!=1))   
+                    bOK = TrackLocalMap();
+            // SAHA LOCALIZATION ONLY MODE // 
         }
 
         if(bOK)
             mState = OK;
-        else if (mState == OK)
+
+
+        // SAHA LOCALIZATION ONLY MODE // 
+        else if (mState == OK && mpSystem->localizationOnlyMode!=1)
         {
             if (mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
             {
                 Verbose::PrintMess("Track lost for less than one second...", Verbose::VERBOSITY_NORMAL);
                 if(!pCurrentMap->isImuInitialized() || !pCurrentMap->GetIniertialBA2())
                 {
+                    // SAHA
                     cout << "IMU is not or recently initialized. Reseting active map..." << endl;
                     mpSystem->ResetActiveMap();
                 }
@@ -2202,6 +2235,8 @@ void Tracking::Track()
                 mTimeStampLost = mCurrentFrame.mTimeStamp;
             //}
         }
+        // SAHA LOCALIZATION ONLY MODE // 
+
 
         // Save frame if recent relocalization, since they are used for IMU reset (as we are making copy, it shluld be once mCurrFrame is completely modified)
         if((mCurrentFrame.mnId<(mnLastRelocFrameId+mnFramesToResetIMU)) && (mCurrentFrame.mnId > mnFramesToResetIMU) &&
@@ -2458,7 +2493,7 @@ void Tracking::StereoInitialization()
             }
         }
 
-        Verbose::PrintMess("New Map created with " + to_string(mpAtlas->MapPointsInMap()) + " points", Verbose::VERBOSITY_QUIET);
+        Verbose::PrintMess("(Stereo)New Map created with " + to_string(mpAtlas->MapPointsInMap()) + " points", Verbose::VERBOSITY_QUIET);
 
         //cout << "Active map: " << mpAtlas->GetCurrentMap()->GetId() << endl;
 
@@ -2765,6 +2800,7 @@ void Tracking::CheckReplacedInLastFrame()
 
 bool Tracking::TrackReferenceKeyFrame()
 {
+
     // Compute Bag of Words vector
     mCurrentFrame.ComputeBoW();
 
@@ -3897,6 +3933,7 @@ void Tracking::ResetActiveMap(bool bLocMap)
 
     // SAHA LOCALIZATION ONLY MODE //
     if(mpSystem->localizationOnlyMode!=1){
+        
         if (!bLocMap)
         {
             Verbose::PrintMess("Reseting Local Mapper...", Verbose::VERBOSITY_VERY_VERBOSE);
@@ -3906,8 +3943,22 @@ void Tracking::ResetActiveMap(bool bLocMap)
 
         // Reset Loop Closing
         Verbose::PrintMess("Reseting Loop Closing...", Verbose::VERBOSITY_NORMAL);
+        cout << "Reseting Loop Closing..." << endl;
         mpLoopClosing->RequestResetActiveMap(pMap);
+        cout << "Reseting Loop Closing... Done." << endl;
         Verbose::PrintMess("done", Verbose::VERBOSITY_NORMAL);
+    }
+    else{
+        // SAHA
+        mpAtlas->SetImuInitialized();
+        t0IMU = mCurrentFrame.mTimeStamp;
+        // mpCurrentKeyFrame->bImu = true;
+
+        // mpAtlas->GetCurrentMap()->SetIniertialBA1();
+        // mpAtlas->GetCurrentMap()->SetIniertialBA2();
+        // cout << mpAtlas->isImuInitialized() << endl;
+        // cout << mpAtlas->GetCurrentMap()->GetIniertialBA1() << endl;
+        // cout << mpAtlas->GetCurrentMap()->GetIniertialBA2() << "\nsetting" << endl;
     }
 
     // Clear BoW Database
@@ -3942,12 +3993,15 @@ void Tracking::ResetActiveMap(bool bLocMap)
 
     //cout << "First Frame id: " << index << endl;
     int num_lost = 0;
+    int num_found = 0;
     cout << "mnInitialFrameId = " << mnInitialFrameId << endl;
 
     for(list<bool>::iterator ilbL = mlbLost.begin(); ilbL != mlbLost.end(); ilbL++)
     {
-        if(index < mnInitialFrameId)
+        if(index < mnInitialFrameId){
             lbLost.push_back(*ilbL);
+            num_found += 1;
+        }
         else
         {
             lbLost.push_back(true);
@@ -3956,7 +4010,7 @@ void Tracking::ResetActiveMap(bool bLocMap)
 
         index++;
     }
-    cout << num_lost << " Frames set to lost" << endl;
+    cout << num_lost << " Frames set to lost out of " << (int)(num_found+num_lost) << endl;
 
     mlbLost = lbLost;
 
@@ -3974,6 +4028,7 @@ void Tracking::ResetActiveMap(bool bLocMap)
     if(mpViewer)
         mpViewer->Release();
 
+    cout << "End reseting!" << endl;
     Verbose::PrintMess("   End reseting! ", Verbose::VERBOSITY_NORMAL);
 }
 

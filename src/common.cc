@@ -304,7 +304,8 @@ sensor_msgs::PointCloud2 mappoint_to_pointcloud(std::vector<ORB_SLAM3::MapPoint*
 
     if (map_points.size() == 0)
     {
-        std::cout << "Map point vector is empty!" << std::endl;
+        // SAHA
+        // std::cout << "Map point vector is empty!" << std::endl;
     }
 
     sensor_msgs::PointCloud2 cloud;

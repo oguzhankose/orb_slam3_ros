@@ -417,16 +417,13 @@ void Frame::AssignFeaturesToGrid()
 
 void Frame::ExtractORB(int flag, const cv::Mat &im, const int x0, const int x1)
 {
-    std::cout << "Extracting ORB1" << std::endl;
     vector<int> vLapping = {x0,x1};
-
     if(flag==0){
         monoLeft = (*mpORBextractorLeft)(im,cv::Mat(),mvKeys,mDescriptors,vLapping);
     }
     else{
         monoRight = (*mpORBextractorRight)(im,cv::Mat(),mvKeysRight,mDescriptorsRight,vLapping);
     }
-    std::cout << "Extracting ORB5 Finished" << std::endl;
 }
 
 bool Frame::isSet() const {
@@ -1065,15 +1062,14 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
     std::vector<int> vLapping = {0,848};
     // std::vector<int> vLapping(static_cast<KannalaBrandt8*>(mpCamera)->mvLappingArea);
 
-    thread threadLeft(&Frame::ExtractORB,this,0,imLeft,vLapping.at(0),vLapping.at(1));
+    thread threadLeft(&Frame::ExtractORB,this,0,imLeft,0,848);
+    thread threadRight(&Frame::ExtractORB,this,1,imRight,0,848);
     // thread threadLeft(&Frame::ExtractORB,this,0,imLeft,static_cast<KannalaBrandt8*>(mpCamera)->mvLappingArea[0],static_cast<KannalaBrandt8*>(mpCamera)->mvLappingArea[1]);
-    thread threadRight(&Frame::ExtractORB,this,0,imRight,vLapping.at(0),vLapping.at(1));
     // thread threadRight(&Frame::ExtractORB,this,1,imRight,static_cast<KannalaBrandt8*>(mpCamera2)->mvLappingArea[0],static_cast<KannalaBrandt8*>(mpCamera2)->mvLappingArea[1]);
 
 
     threadLeft.join();
     threadRight.join();
-    std::cout << "Hello keko 1" << std::endl;
 
 #ifdef REGISTER_TIMES
     std::chrono::steady_clock::time_point time_EndExtORB = std::chrono::steady_clock::now();
@@ -1114,8 +1110,6 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
     mRlr = mTlr.rotationMatrix();
     mtlr = mTlr.translation();
 
-    std::cout << "Hello keko 2" << std::endl;
-
 #ifdef REGISTER_TIMES
     std::chrono::steady_clock::time_point time_StartStereoMatches = std::chrono::steady_clock::now();
 #endif
@@ -1138,8 +1132,6 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
 
     UndistortKeyPoints();
 
-    std::cout << "Hello keko 3" << std::endl;
-
 }
 
 void Frame::ComputeStereoFishEyeMatches() {
@@ -1147,19 +1139,8 @@ void Frame::ComputeStereoFishEyeMatches() {
     vector<cv::KeyPoint> stereoLeft(mvKeys.begin() + monoLeft, mvKeys.end());
     vector<cv::KeyPoint> stereoRight(mvKeysRight.begin() + monoRight, mvKeysRight.end());
 
-    // If there is no non-overlapping area
-    /*
-    
-        cv::mat fonksiyonunda su row dan su rowa kadar al gibi bir sey yapmak gerekiyor.
-        düzeltilmeli
-    
-    */
-    cv::Mat stereoDescLeft = mDescriptors.clone();
-    cv::Mat stereoDescRight = mDescriptorsRight.clone();
-    // cv::Mat stereoDescLeft = mDescriptors.rowRange(monoLeft, mDescriptors.rows);
-    // cv::Mat stereoDescRight = mDescriptorsRight.rowRange(monoRight, mDescriptorsRight.rows);
-
-
+    cv::Mat stereoDescLeft = mDescriptors.rowRange(monoLeft, mDescriptors.rows);
+    cv::Mat stereoDescRight = mDescriptorsRight.rowRange(monoRight, mDescriptorsRight.rows);
 
     mvLeftToRightMatch = vector<int>(Nleft,-1);
     mvRightToLeftMatch = vector<int>(Nright,-1);
@@ -1167,19 +1148,6 @@ void Frame::ComputeStereoFishEyeMatches() {
     mvuRight = vector<float>(Nleft,-1);
     mvStereo3Dpoints = vector<Eigen::Vector3f>(Nleft);
     mnCloseMPs = 0;
-
-    std::cout << "Hello keko 3.5" << std::endl;
-
-
-
-    /*
-    
-        BURAYA KADAR GELIYOR
-    
-    */
-
-
-
 
     //Perform a brute force between Keypoint in the left and right image
     vector<vector<cv::DMatch>> matches;
@@ -1206,9 +1174,6 @@ void Frame::ComputeStereoFishEyeMatches() {
             }
         }
     }
-
-    std::cout << "Hello keko 4" << std::endl;
-
 }
 
 bool Frame::isInFrustumChecks(MapPoint *pMP, float viewingCosLimit, bool bRight) {

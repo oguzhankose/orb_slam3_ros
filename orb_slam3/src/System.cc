@@ -138,6 +138,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         // Load the file with an earlier session
         //clock_t start = clock();
         cout << "Initialization of Atlas from file: " << mStrLoadAtlasFromFile << endl;
+
         bool isRead = LoadAtlas(FileType::BINARY_FILE);
 
         if(!isRead)
@@ -158,6 +159,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         //cout << "Binary file read in " << msElapsed << " ms" << endl;
 
         //usleep(10*1000*1000);
+
     }
 
 
@@ -174,9 +176,26 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer, mpMapDrawer,
                              mpAtlas, mpKeyFrameDatabase, strSettingsFile, mSensor, settings_, strSequence);
 
-    // SAHA LOCALIZATION ONLY MODE //
-    if(localizationOnlyMode!=1){
 
+
+    // SAHA LOCALIZATION ONLY MODE //
+    if(localizationOnlyMode==1){
+        mpLocalMapper = new LocalMapping(this, mpAtlas, mSensor==MONOCULAR || mSensor==IMU_MONOCULAR,
+                                            mSensor==IMU_MONOCULAR || mSensor==IMU_STEREO || mSensor==IMU_RGBD, strSequence);
+        
+
+        mpTracker->SetLocalMapper(mpLocalMapper);
+        mpLocalMapper->SetTracker(mpTracker);
+
+        // mpLocalMapper->SetLoopCloser(mpLoopCloser);
+        // mpLoopCloser->SetTracker(mpTracker);
+        // mpLoopCloser->SetLocalMapper(mpLocalMapper);
+
+    }
+    //Set pointers between threads
+    else{
+
+        std::cout << "Starting local mapping algorithm" << std::endl;
         //Initialize the Local Mapping thread and launch
         mpLocalMapper = new LocalMapping(this, mpAtlas, mSensor==MONOCULAR || mSensor==IMU_MONOCULAR,
                                         mSensor==IMU_MONOCULAR || mSensor==IMU_STEREO || mSensor==IMU_RGBD, strSequence);
@@ -204,6 +223,9 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         
         //Set pointers between threads
         mpTracker->SetLocalMapper(mpLocalMapper);
+
+        // SAHA
+        mpTracker->SetLoopClosing(mpLoopCloser);
 
         mpLocalMapper->SetTracker(mpTracker);
 
@@ -265,7 +287,7 @@ Sophus::SE3f System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, 
 
     // SAHA LOCALIZATION ONLY MODE //
     if(localizationOnlyMode!=1){
-    // Check mode change
+        // Check mode change
         unique_lock<mutex> lock(mMutexMode);
         if(mbActivateLocalizationMode)
         {
@@ -279,13 +301,23 @@ Sophus::SE3f System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, 
 
             mpTracker->InformOnlyTracking(true);
             mbActivateLocalizationMode = false;
+            cout << "Activated localization mode." << endl;
+
         }
         if(mbDeactivateLocalizationMode)
         {
             mpTracker->InformOnlyTracking(false);
             mpLocalMapper->Release();
             mbDeactivateLocalizationMode = false;
+
+            cout << "Deactivated localization mode." << endl;
+
         }
+    }
+    else{
+        mpTracker->InformOnlyTracking(true);
+        mbActivateLocalizationMode = false;
+        //cout << "Activated SAHA localization mode." << endl;
     }
 
     // Check reset
@@ -1624,6 +1656,8 @@ vector<PoseWithId> System::GetAllKeyframePosesWithId()
     sort(vpKFs.begin(), vpKFs.end(), KeyFrame::lId);
 
     vector<PoseWithId> vKFposes;
+
+    cout << "keyframes count : " << vpKFs.size() << endl;
 
     for (size_t i = 0; i < vpKFs.size(); i++)
     {

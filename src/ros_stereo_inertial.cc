@@ -120,7 +120,8 @@ cv::Mat ImageGrabber::GetImage(const sensor_msgs::ImageConstPtr &img_msg)
     cv_bridge::CvImageConstPtr cv_ptr;
     try
     {
-        cv_ptr = cv_bridge::toCvShare(img_msg, sensor_msgs::image_encodings::MONO8);
+        // cv_ptr = cv_bridge::toCvShare(img_msg, sensor_msgs::image_encodings::MONO8);
+        cv_ptr = cv_bridge::toCvShare(img_msg, sensor_msgs::image_encodings::TYPE_8UC1);
     }
     catch (cv_bridge::Exception& e)
     {
@@ -211,9 +212,28 @@ void ImageGrabber::SyncWithImu()
             
             // ORB-SLAM3 runs in TrackStereo()
             Sophus::SE3f Tcw = pSLAM->TrackStereo(imLeft,imRight,tImLeft,vImuMeas);
+            // SAHA
+            // pSLAM->DeactivateLocalizationMode();
 
             publish_topics(msg_time, Wbb);
+
+
+
+
             
+
+            vector<ORB_SLAM3::PoseWithId> kf_poses;
+            kf_poses = pSLAM->GetAllKeyframePosesWithId();      // BUNU KONTROL ET
+
+            
+
+            // TrackReferenceKeyFrame
+
+
+
+
+
+        
             std::chrono::milliseconds tSleep(1);
             std::this_thread::sleep_for(tSleep);
         }
