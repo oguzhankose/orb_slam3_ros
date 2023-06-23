@@ -226,7 +226,6 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
         // SAHA
         mpTracker->SetLoopClosing(mpLoopCloser);
-
         mpLocalMapper->SetTracker(mpTracker);
 
         mpLocalMapper->SetLoopCloser(mpLoopCloser);
@@ -1657,7 +1656,7 @@ vector<PoseWithId> System::GetAllKeyframePosesWithId()
 
     vector<PoseWithId> vKFposes;
 
-    cout << "keyframes count : " << vpKFs.size() << endl;
+    // cout << "keyframes count : " << vpKFs.size() << endl;
 
     for (size_t i = 0; i < vpKFs.size(); i++)
     {
