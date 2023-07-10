@@ -96,7 +96,7 @@ int main(int argc, char **argv)
     cout << endl << "-------" << endl;
     cout.precision(17);
 
-    cv::Mat imLeft, imRight;
+    cv::UMat imLeft, imRight;
     cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(3.0, cv::Size(8, 8));
 
     double t_resize = 0.f;

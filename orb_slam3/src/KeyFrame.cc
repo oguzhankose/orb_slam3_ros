@@ -99,7 +99,7 @@ void KeyFrame::ComputeBoW()
 {
     if(mBowVec.empty() || mFeatVec.empty())
     {
-        vector<cv::Mat> vCurrentDesc = Converter::toDescriptorVector(mDescriptors);
+        vector<cv::UMat> vCurrentDesc = Converter::toDescriptorVector(mDescriptors);
         // Feature vector associate features with nodes in the 4th level (from leaves up)
         // We assume the vocabulary tree has 6 levels, change the 4 otherwise
         mpORBvocabulary->transform(vCurrentDesc,mBowVec,mFeatVec,4);
@@ -1045,14 +1045,14 @@ bool KeyFrame::ProjectPointDistort(MapPoint* pMP, cv::Point2f &kp, float &u, flo
     float x = (u - cx) * invfx;
     float y = (v - cy) * invfy;
     float r2 = x * x + y * y;
-    float k1 = mDistCoef.at<float>(0);
-    float k2 = mDistCoef.at<float>(1);
-    float p1 = mDistCoef.at<float>(2);
-    float p2 = mDistCoef.at<float>(3);
+    float k1 = mDistCoef.getMat(cv::ACCESS_FAST).at<float>(0);
+    float k2 = mDistCoef.getMat(cv::ACCESS_FAST).at<float>(1);
+    float p1 = mDistCoef.getMat(cv::ACCESS_FAST).at<float>(2);
+    float p2 = mDistCoef.getMat(cv::ACCESS_FAST).at<float>(3);
     float k3 = 0;
     if(mDistCoef.total() == 5)
     {
-        k3 = mDistCoef.at<float>(4);
+        k3 = mDistCoef.getMat(cv::ACCESS_FAST).at<float>(4);
     }
 
     // Radial distorsion

@@ -329,7 +329,7 @@ float MapPoint::GetFoundRatio()
 void MapPoint::ComputeDistinctiveDescriptors()
 {
     // Retrieve all observed descriptors
-    vector<cv::Mat> vDescriptors;
+    vector<cv::UMat> vDescriptors;
 
     map<KeyFrame*,tuple<int,int>> observations;
 
@@ -402,7 +402,7 @@ void MapPoint::ComputeDistinctiveDescriptors()
     }
 }
 
-cv::Mat MapPoint::GetDescriptor()
+cv::UMat MapPoint::GetDescriptor()
 {
     unique_lock<mutex> lock(mMutexFeatures);
     return mDescriptor.clone();

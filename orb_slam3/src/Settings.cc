@@ -105,7 +105,7 @@ namespace ORB_SLAM3 {
     }
 
     template<>
-    cv::Mat Settings::readParameter<cv::Mat>(cv::FileStorage& fSettings, const std::string& name, bool& found, const bool required){
+    cv::UMat Settings::readParameter<cv::UMat>(cv::FileStorage& fSettings, const std::string& name, bool& found, const bool required){
         cv::FileNode node = fSettings[name];
         if(node.empty()){
             if(required){
@@ -115,12 +115,12 @@ namespace ORB_SLAM3 {
             else{
                 std::cerr << name << " optional parameter does not exist..." << std::endl;
                 found = false;
-                return cv::Mat();
+                return cv::UMat();
             }
         }
         else{
             found = true;
-            return node.mat();
+            return node.mat().getUMat(cv::ACCESS_FAST);
         }
     }
 
@@ -339,7 +339,7 @@ namespace ORB_SLAM3 {
             bf_ = b_ * calibration1_->getParameter(0);
         }
         else{
-            cv::Mat cvTlr = readParameter<cv::Mat>(fSettings,"Stereo.T_c1_c2",found);
+            cv::UMat cvTlr = readParameter<cv::UMat>(fSettings,"Stereo.T_c1_c2",found);
             Tlr_ = Converter::toSophus(cvTlr);
 
             //TODO: also search for Trl and invert if necessary
@@ -419,7 +419,7 @@ namespace ORB_SLAM3 {
         accWalk_ = readParameter<float>(fSettings,"IMU.AccWalk",found);
         imuFrequency_ = readParameter<float>(fSettings,"IMU.Frequency",found);
 
-        cv::Mat cvTbc = readParameter<cv::Mat>(fSettings,"IMU.T_b_c1",found);
+        cv::UMat cvTbc = readParameter<cv::UMat>(fSettings,"IMU.T_b_c1",found);
         Tbc_ = Converter::toSophus(cvTbc);
 
         readParameter<int>(fSettings,"IMU.InsertKFsWhenLost",found,false);
@@ -484,20 +484,20 @@ namespace ORB_SLAM3 {
 
     void Settings::precomputeRectificationMaps() {
         //Precompute rectification maps, new calibrations, ...
-        cv::Mat K1 = static_cast<Pinhole*>(calibration1_)->toK();
+        cv::UMat K1 = static_cast<Pinhole*>(calibration1_)->toK();
         K1.convertTo(K1,CV_64F);
-        cv::Mat K2 = static_cast<Pinhole*>(calibration2_)->toK();
+        cv::UMat K2 = static_cast<Pinhole*>(calibration2_)->toK();
         K2.convertTo(K2,CV_64F);
 
-        cv::Mat cvTlr;
+        cv::UMat cvTlr;
         cv::eigen2cv(Tlr_.inverse().matrix3x4(),cvTlr);
-        cv::Mat R12 = cvTlr.rowRange(0,3).colRange(0,3);
+        cv::UMat R12 = cvTlr.rowRange(0,3).colRange(0,3);
         R12.convertTo(R12,CV_64F);
-        cv::Mat t12 = cvTlr.rowRange(0,3).col(3);
+        cv::UMat t12 = cvTlr.rowRange(0,3).col(3);
         t12.convertTo(t12,CV_64F);
 
-        cv::Mat R_r1_u1, R_r2_u2;
-        cv::Mat P1, P2, Q;
+        cv::UMat R_r1_u1, R_r2_u2;
+        cv::UMat P1, P2, Q;
 
         cv::stereoRectify(K1,camera1DistortionCoef(),K2,camera2DistortionCoef(),newImSize_,
                           R12, t12,
@@ -509,23 +509,23 @@ namespace ORB_SLAM3 {
                                     newImSize_, CV_32F, M1r_, M2r_);
 
         //Update calibration
-        calibration1_->setParameter(P1.at<double>(0,0), 0);
-        calibration1_->setParameter(P1.at<double>(1,1), 1);
-        calibration1_->setParameter(P1.at<double>(0,2), 2);
-        calibration1_->setParameter(P1.at<double>(1,2), 3);
+        calibration1_->setParameter(P1.getMat(cv::ACCESS_FAST).at<double>(0,0), 0);
+        calibration1_->setParameter(P1.getMat(cv::ACCESS_FAST).at<double>(1,1), 1);
+        calibration1_->setParameter(P1.getMat(cv::ACCESS_FAST).at<double>(0,2), 2);
+        calibration1_->setParameter(P1.getMat(cv::ACCESS_FAST).at<double>(1,2), 3);
 
-        calibration2_->setParameter(P2.at<double>(0,0), 0);
-        calibration2_->setParameter(P2.at<double>(1,1), 1);
-        calibration2_->setParameter(P2.at<double>(0,2), 2);
-        calibration2_->setParameter(P2.at<double>(1,2), 3);
+        calibration2_->setParameter(P2.getMat(cv::ACCESS_FAST).at<double>(0,0), 0);
+        calibration2_->setParameter(P2.getMat(cv::ACCESS_FAST).at<double>(1,1), 1);
+        calibration2_->setParameter(P2.getMat(cv::ACCESS_FAST).at<double>(0,2), 2);
+        calibration2_->setParameter(P2.getMat(cv::ACCESS_FAST).at<double>(1,2), 3);
 
         //Update bf
-        bf_ = b_ * P1.at<double>(0,0);
+        bf_ = b_ * P1.getMat(cv::ACCESS_FAST).at<double>(0,0);
 
         //Update relative pose between camera 1 and IMU if necessary
         if(sensor_ == System::IMU_STEREO){
             Eigen::Matrix3f eigenR_r1_u1;
-            cv::cv2eigen(R_r1_u1,eigenR_r1_u1);
+            cv::cv2eigen(R_r1_u1.getMat(cv::ACCESS_FAST),eigenR_r1_u1);
             Sophus::SE3f T_r1_u1(eigenR_r1_u1,Eigen::Vector3f::Zero());
             Tbc_ = Tbc_ * T_r1_u1.inverse();
         }

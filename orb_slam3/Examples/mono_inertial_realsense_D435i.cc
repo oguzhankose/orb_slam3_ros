@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
     vector<double> v_accel_timestamp_sync;
     vector<rs2_vector> v_accel_data_sync;
 
-    cv::Mat imCV;
+    cv::UMat imCV;
     int width_img, height_img;
     double timestamp_image = -1.0;
     bool image_ready = false;
@@ -201,7 +201,7 @@ int main(int argc, char **argv) {
             }
 
             rs2::video_frame color_frame = fs.get_infrared_frame();
-            imCV = cv::Mat(cv::Size(width_img, height_img), CV_8U, (void*)(color_frame.get_data()), cv::Mat::AUTO_STEP);
+            imCV = cv::UMat(cv::Size(width_img, height_img), CV_8U, (void*)(color_frame.get_data()), cv::UMat::AUTO_STEP);
 
             timestamp_image = fs.get_timestamp()*1e-3;
             image_ready = true;
@@ -291,7 +291,7 @@ int main(int argc, char **argv) {
     float imageScale = SLAM.GetImageScale();
 
     double timestamp;
-    cv::Mat im;
+    cv::UMat im;
 
     // Clear IMU vectors
     v_gyro_data.clear();

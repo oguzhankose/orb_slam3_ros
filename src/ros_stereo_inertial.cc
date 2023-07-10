@@ -116,11 +116,18 @@ void ImageGrabber::GrabImageRight(const sensor_msgs::ImageConstPtr &img_msg)
 
 cv::Mat ImageGrabber::GetImage(const sensor_msgs::ImageConstPtr &img_msg)
 {
-    // Copy the ros image message to cv::Mat.
+    // Copy the ros image message to cv::UMat.
     cv_bridge::CvImageConstPtr cv_ptr;
     try
     {
-        cv_ptr = cv_bridge::toCvShare(img_msg, sensor_msgs::image_encodings::MONO8);
+        try
+        {
+            cv_ptr = cv_bridge::toCvShare(img_msg, sensor_msgs::image_encodings::MONO8);
+        }
+        catch (cv_bridge::Exception& e)
+        {
+            cv_ptr = cv_bridge::toCvShare(img_msg, sensor_msgs::image_encodings::TYPE_8UC1);
+        }
     }
     catch (cv_bridge::Exception& e)
     {
@@ -143,10 +150,12 @@ void ImageGrabber::SyncWithImu()
     const double maxTimeDiff = 0.01;
     while(1)
     {
-        cv::Mat imLeft, imRight;
+        cv::UMat imLeft, imRight;
         double tImLeft = 0, tImRight = 0;
+        
         if (!imgLeftBuf.empty()&&!imgRightBuf.empty()&&!mpImuGb->imuBuf.empty())
         {
+
             tImLeft = imgLeftBuf.front()->header.stamp.toSec();
             tImRight = imgRightBuf.front()->header.stamp.toSec();
 
@@ -175,13 +184,13 @@ void ImageGrabber::SyncWithImu()
                 continue;
 
             this->mBufMutexLeft.lock();
-            imLeft = GetImage(imgLeftBuf.front());
+            imLeft = GetImage(imgLeftBuf.front()).getUMat(cv::ACCESS_FAST);
             ros::Time msg_time = imgLeftBuf.front()->header.stamp;
             imgLeftBuf.pop();
             this->mBufMutexLeft.unlock();
 
             this->mBufMutexRight.lock();
-            imRight = GetImage(imgRightBuf.front());
+            imRight = GetImage(imgRightBuf.front()).getUMat(cv::ACCESS_FAST);
             imgRightBuf.pop();
             this->mBufMutexRight.unlock();
 
@@ -207,6 +216,7 @@ void ImageGrabber::SyncWithImu()
                     mpImuGb->imuBuf.pop();
                 }
             }
+
             mpImuGb->mBufMutex.unlock();
             
             // ORB-SLAM3 runs in TrackStereo()
@@ -225,6 +235,5 @@ void ImuGrabber::GrabImu(const sensor_msgs::ImuConstPtr &imu_msg)
     mBufMutex.lock();
     imuBuf.push(imu_msg);
     mBufMutex.unlock();
-    
     return;
 }

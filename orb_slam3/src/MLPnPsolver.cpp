@@ -174,8 +174,12 @@ namespace ORB_SLAM3 {
 	                mvbBestInliers = mvbInliersi;
 	                mnBestInliers = mnInliersi;
 
-	                cv::Mat Rcw(3,3,CV_64F,mRi);
-	                cv::Mat tcw(3,1,CV_64F,mti);
+	                // cv::UMat Rcw(3,3,CV_64F,mRi);
+                    cv::Mat matRcw(3,3,CV_64F,mRi);
+                    cv::UMat Rcw = matRcw.getUMat(cv::ACCESS_FAST);
+	                // cv::UMat tcw(3,1,CV_64F,mti);
+	                cv::Mat mattcw(3,1,CV_64F,mti);
+                    cv::UMat tcw = mattcw.getUMat(cv::ACCESS_FAST);
 	                Rcw.convertTo(Rcw,CV_32F);
 	                tcw.convertTo(tcw,CV_32F);
                     mBestTcw.setIdentity();
@@ -335,8 +339,12 @@ namespace ORB_SLAM3 {
 
         if(mnInliersi>mRansacMinInliers)
         {
-            cv::Mat Rcw(3,3,CV_64F,mRi);
-            cv::Mat tcw(3,1,CV_64F,mti);
+            // cv::UMat Rcw(3,3,CV_64F,mRi);
+            cv::Mat matRcw(3,3,CV_64F,mRi);
+            cv::UMat Rcw = matRcw.getUMat(cv::ACCESS_FAST);
+            // cv::UMat tcw(3,1,CV_64F,mti);
+            cv::Mat mattcw(3,1,CV_64F,mti);
+            cv::UMat tcw = mattcw.getUMat(cv::ACCESS_FAST);
             Rcw.convertTo(Rcw,CV_32F);
             tcw.convertTo(tcw,CV_32F);
             mRefinedTcw.setIdentity();

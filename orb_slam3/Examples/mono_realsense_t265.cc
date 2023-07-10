@@ -90,7 +90,7 @@ int main(int argc, char **argv)
     ORB_SLAM3::System SLAM(argv[1],argv[2],ORB_SLAM3::System::MONOCULAR, true);
     float imageScale = SLAM.GetImageScale();
 
-    cv::Mat imCV;
+    cv::UMat imCV;
 
     rs2::stream_profile fisheye_stream = pipe_profile.get_stream(RS2_STREAM_FISHEYE, 1);
     rs2_intrinsics intrinsics = fisheye_stream.as<rs2::video_stream_profile>().get_intrinsics();
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
         if(rs2::video_frame image_frame = frame_set.first_or_default(RS2_STREAM_FISHEYE))
         {
             rs2::video_frame frame = frame_set.get_fisheye_frame(1); // Left image
-            imCV = cv::Mat(cv::Size(width_img, height_img), CV_8UC1, (void*)(frame.get_data()), cv::Mat::AUTO_STEP);
+            imCV = cv::UMat(cv::Size(width_img, height_img), CV_8UC1, (void*)(frame.get_data()), cv::UMat::AUTO_STEP);
             if(imageScale != 1.f)
             {
 #ifdef REGISTER_TIMES

@@ -372,7 +372,7 @@ public:
 
     // Calibration parameters
     const float fx, fy, cx, cy, invfx, invfy, mbf, mb, mThDepth;
-    cv::Mat mDistCoef;
+    cv::UMat mDistCoef;
 
     // Number of KeyPoints
     const int N;
@@ -382,7 +382,7 @@ public:
     const std::vector<cv::KeyPoint> mvKeysUn;
     const std::vector<float> mvuRight; // negative value for monocular points
     const std::vector<float> mvDepth; // negative value for monocular points
-    const cv::Mat mDescriptors;
+    const cv::UMat mDescriptors;
 
     //BoW
     DBoW2::BowVector mBowVec;
@@ -422,7 +422,7 @@ public:
     std::vector <KeyFrame*> mvpMergeCandKFs;
 
     //bool mbHasHessian;
-    //cv::Mat mHessianPose;
+    //cv::UMat mHessianPose;
 
     // The following variables need to be accessed trough a mutex to be thread safe.
 protected:

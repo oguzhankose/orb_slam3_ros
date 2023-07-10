@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 
 void ImageGrabber::GrabImage(const sensor_msgs::ImageConstPtr& msg)
 {
-    // Copy the ros image message to cv::Mat.
+    // Copy the ros image message to cv::UMat.
     cv_bridge::CvImageConstPtr cv_ptr;
     try
     {
@@ -85,7 +85,7 @@ void ImageGrabber::GrabImage(const sensor_msgs::ImageConstPtr& msg)
     }
 
     // ORB-SLAM3 runs in TrackMonocular()
-    Sophus::SE3f Tcw = pSLAM->TrackMonocular(cv_ptr->image, cv_ptr->header.stamp.toSec());
+    Sophus::SE3f Tcw = pSLAM->TrackMonocular(cv_ptr->image.getUMat(cv::ACCESS_FAST), cv_ptr->header.stamp.toSec());
 
     ros::Time msg_time = msg->header.stamp;
 

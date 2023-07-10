@@ -114,7 +114,7 @@ public:
     Calib(const Calib &calib);
     Calib(){mbIsSet = false;}
 
-    //void Set(const cv::Mat &cvTbc, const float &ng, const float &na, const float &ngw, const float &naw);
+    //void Set(const cv::UMat &cvTbc, const float &ng, const float &na, const float &ngw, const float &naw);
     void Set(const Sophus::SE3<float> &sophTbc, const float &ng, const float &na, const float &ngw, const float &naw);
 
 public:

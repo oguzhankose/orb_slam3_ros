@@ -576,17 +576,17 @@ void Tracking::newParameterLoader(Settings *settings) {
         mDistCoef = settings->camera1DistortionCoef();
     }
     else{
-        mDistCoef = cv::Mat::zeros(4,1,CV_32F);
+        mDistCoef = cv::UMat::zeros(4,1,CV_32F);
     }
 
     //TODO: missing image scaling and rectification
     mImageScale = 1.0f;
 
-    mK = cv::Mat::eye(3,3,CV_32F);
-    mK.at<float>(0,0) = mpCamera->getParameter(0);
-    mK.at<float>(1,1) = mpCamera->getParameter(1);
-    mK.at<float>(0,2) = mpCamera->getParameter(2);
-    mK.at<float>(1,2) = mpCamera->getParameter(3);
+    mK = cv::UMat::eye(3,3,CV_32F);
+    mK.getMat(cv::ACCESS_FAST).at<float>(0,0) = mpCamera->getParameter(0);
+    mK.getMat(cv::ACCESS_FAST).at<float>(1,1) = mpCamera->getParameter(1);
+    mK.getMat(cv::ACCESS_FAST).at<float>(0,2) = mpCamera->getParameter(2);
+    mK.getMat(cv::ACCESS_FAST).at<float>(1,2) = mpCamera->getParameter(3);
 
     mK_.setIdentity();
     mK_(0,0) = mpCamera->getParameter(0);
@@ -654,7 +654,7 @@ void Tracking::newParameterLoader(Settings *settings) {
 
 bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
 {
-    mDistCoef = cv::Mat::zeros(4,1,CV_32F);
+    mDistCoef = cv::UMat::zeros(4,1,CV_32F);
     cout << endl << "Camera Parameters: " << endl;
     bool b_miss_params = false;
 
@@ -713,7 +713,7 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         node = fSettings["Camera.k1"];
         if(!node.empty() && node.isReal())
         {
-            mDistCoef.at<float>(0) = node.real();
+            mDistCoef.getMat(cv::ACCESS_FAST).at<float>(0) = node.real();
         }
         else
         {
@@ -724,7 +724,7 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         node = fSettings["Camera.k2"];
         if(!node.empty() && node.isReal())
         {
-            mDistCoef.at<float>(1) = node.real();
+            mDistCoef.getMat(cv::ACCESS_FAST).at<float>(1) = node.real();
         }
         else
         {
@@ -735,7 +735,7 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         node = fSettings["Camera.p1"];
         if(!node.empty() && node.isReal())
         {
-            mDistCoef.at<float>(2) = node.real();
+            mDistCoef.getMat(cv::ACCESS_FAST).at<float>(2) = node.real();
         }
         else
         {
@@ -746,7 +746,7 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         node = fSettings["Camera.p2"];
         if(!node.empty() && node.isReal())
         {
-            mDistCoef.at<float>(3) = node.real();
+            mDistCoef.getMat(cv::ACCESS_FAST).at<float>(3) = node.real();
         }
         else
         {
@@ -757,8 +757,8 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         node = fSettings["Camera.k3"];
         if(!node.empty() && node.isReal())
         {
-            mDistCoef.resize(5);
-            mDistCoef.at<float>(4) = node.real();
+            mDistCoef.getMat(cv::ACCESS_FAST).resize(5);
+            mDistCoef.getMat(cv::ACCESS_FAST).at<float>(4) = node.real();
         }
 
         node = fSettings["Camera.imageScale"];
@@ -793,21 +793,21 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         std::cout << "- fy: " << fy << std::endl;
         std::cout << "- cx: " << cx << std::endl;
         std::cout << "- cy: " << cy << std::endl;
-        std::cout << "- k1: " << mDistCoef.at<float>(0) << std::endl;
-        std::cout << "- k2: " << mDistCoef.at<float>(1) << std::endl;
+        std::cout << "- k1: " << mDistCoef.getMat(cv::ACCESS_FAST).at<float>(0) << std::endl;
+        std::cout << "- k2: " << mDistCoef.getMat(cv::ACCESS_FAST).at<float>(1) << std::endl;
 
 
-        std::cout << "- p1: " << mDistCoef.at<float>(2) << std::endl;
-        std::cout << "- p2: " << mDistCoef.at<float>(3) << std::endl;
+        std::cout << "- p1: " << mDistCoef.getMat(cv::ACCESS_FAST).at<float>(2) << std::endl;
+        std::cout << "- p2: " << mDistCoef.getMat(cv::ACCESS_FAST).at<float>(3) << std::endl;
 
         if(mDistCoef.rows==5)
-            std::cout << "- k3: " << mDistCoef.at<float>(4) << std::endl;
+            std::cout << "- k3: " << mDistCoef.getMat(cv::ACCESS_FAST).at<float>(4) << std::endl;
 
-        mK = cv::Mat::eye(3,3,CV_32F);
-        mK.at<float>(0,0) = fx;
-        mK.at<float>(1,1) = fy;
-        mK.at<float>(0,2) = cx;
-        mK.at<float>(1,2) = cy;
+        mK = cv::UMat::eye(3,3,CV_32F);
+        mK.getMat(cv::ACCESS_FAST).at<float>(0,0) = fx;
+        mK.getMat(cv::ACCESS_FAST).at<float>(1,1) = fy;
+        mK.getMat(cv::ACCESS_FAST).at<float>(0,2) = cx;
+        mK.getMat(cv::ACCESS_FAST).at<float>(1,2) = cy;
 
         mK_.setIdentity();
         mK_(0,0) = fx;
@@ -940,11 +940,11 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
             std::cout << "- k3: " << k3 << std::endl;
             std::cout << "- k4: " << k4 << std::endl;
 
-            mK = cv::Mat::eye(3,3,CV_32F);
-            mK.at<float>(0,0) = fx;
-            mK.at<float>(1,1) = fy;
-            mK.at<float>(0,2) = cx;
-            mK.at<float>(1,2) = cy;
+            mK = cv::UMat::eye(3,3,CV_32F);
+            mK.getMat(cv::ACCESS_FAST).at<float>(0,0) = fx;
+            mK.getMat(cv::ACCESS_FAST).at<float>(1,1) = fy;
+            mK.getMat(cv::ACCESS_FAST).at<float>(0,2) = cx;
+            mK.getMat(cv::ACCESS_FAST).at<float>(1,2) = cy;
 
             mK_.setIdentity();
             mK_(0,0) = fx;
@@ -1088,10 +1088,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
             }
 
             node = fSettings["Tlr"];
-            cv::Mat cvTlr;
+            cv::UMat cvTlr;
             if(!node.empty())
             {
-                cvTlr = node.mat();
+                cvTlr = node.mat().getUMat(cv::ACCESS_FAST);
                 if(cvTlr.rows != 3 || cvTlr.cols != 4)
                 {
                     std::cerr << "*Tlr matrix have to be a 3x4 transformation matrix*" << std::endl;
@@ -1338,11 +1338,11 @@ bool Tracking::ParseIMUParamFile(cv::FileStorage &fSettings)
 {
     bool b_miss_params = false;
 
-    cv::Mat cvTbc;
+    cv::UMat cvTbc;
     cv::FileNode node = fSettings["Tbc"];
     if(!node.empty())
     {
-        cvTbc = node.mat();
+        cvTbc = node.mat().getUMat(cv::ACCESS_FAST);
         if(cvTbc.rows != 4 || cvTbc.cols != 4)
         {
             std::cerr << "*Tbc matrix have to be a 4x4 transformation matrix*" << std::endl;
@@ -1356,7 +1356,7 @@ bool Tracking::ParseIMUParamFile(cv::FileStorage &fSettings)
     }
     cout << endl;
     cout << "Left camera to Imu Transform (Tbc): " << endl << cvTbc << endl;
-    Eigen::Matrix<float,4,4,Eigen::RowMajor> eigTbc(cvTbc.ptr<float>(0));
+    Eigen::Matrix<float,4,4,Eigen::RowMajor> eigTbc(cvTbc.getMat(cv::ACCESS_FAST).ptr<float>(0));
     Sophus::SE3f Tbc(eigTbc);
 
     node = fSettings["InsertKFsWhenLost"];
@@ -1487,12 +1487,12 @@ bool Tracking::GetStepByStep()
 
 
 
-Sophus::SE3f Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRectRight, const double &timestamp, string filename)
+Sophus::SE3f Tracking::GrabImageStereo(const cv::UMat &imRectLeft, const cv::UMat &imRectRight, const double &timestamp, string filename)
 {
-    //cout << "GrabImageStereo" << endl;
+    // cout << "GrabImageStereo" << endl;
 
     mImGray = imRectLeft;
-    cv::Mat imGrayRight = imRectRight;
+    cv::UMat imGrayRight = imRectRight;
     mImRight = imRectRight;
 
     if(mImGray.channels()==3)
@@ -1524,7 +1524,8 @@ Sophus::SE3f Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat 
         }
     }
 
-    //cout << "Incoming frame creation" << endl;
+    // cout << "Incoming frame creation" << endl;
+    // cout << "burda patliyor" << endl;
 
     if (mSensor == System::STEREO && !mpCamera2)
         mCurrentFrame = Frame(mImGray,imGrayRight,timestamp,mpORBextractorLeft,mpORBextractorRight,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth,mpCamera);
@@ -1535,7 +1536,7 @@ Sophus::SE3f Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat 
     else if(mSensor == System::IMU_STEREO && mpCamera2)
         mCurrentFrame = Frame(mImGray,imGrayRight,timestamp,mpORBextractorLeft,mpORBextractorRight,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth,mpCamera,mpCamera2,mTlr,&mLastFrame,*mpImuCalib);
 
-    //cout << "Incoming frame ended" << endl;
+    // cout << "Incoming frame ended" << endl;
 
     mCurrentFrame.mNameFile = filename;
     mCurrentFrame.mnDataset = mnNumDataset;
@@ -1545,18 +1546,18 @@ Sophus::SE3f Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat 
     vdStereoMatch_ms.push_back(mCurrentFrame.mTimeStereoMatch);
 #endif
 
-    //cout << "Tracking start" << endl;
+    // cout << "Tracking start" << endl;
     Track();
-    //cout << "Tracking end" << endl;
+    // cout << "Tracking end" << endl;
 
     return mCurrentFrame.GetPose();
 }
 
 
-Sophus::SE3f Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const double &timestamp, string filename)
+Sophus::SE3f Tracking::GrabImageRGBD(const cv::UMat &imRGB,const cv::UMat &imD, const double &timestamp, string filename)
 {
     mImGray = imRGB;
-    cv::Mat imDepth = imD;
+    cv::UMat imDepth = imD;
 
     if(mImGray.channels()==3)
     {
@@ -1599,7 +1600,7 @@ Sophus::SE3f Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, co
 }
 
 
-Sophus::SE3f Tracking::GrabImageMonocular(const cv::Mat &im, const double &timestamp, string filename)
+Sophus::SE3f Tracking::GrabImageMonocular(const cv::UMat &im, const double &timestamp, string filename)
 {
     mImGray = im;
     if(mImGray.channels()==3)
@@ -3986,23 +3987,23 @@ void Tracking::ChangeCalibration(const string &strSettingPath)
     mK_(0,2) = cx;
     mK_(1,2) = cy;
 
-    cv::Mat K = cv::Mat::eye(3,3,CV_32F);
-    K.at<float>(0,0) = fx;
-    K.at<float>(1,1) = fy;
-    K.at<float>(0,2) = cx;
-    K.at<float>(1,2) = cy;
+    cv::UMat K = cv::UMat::eye(3,3,CV_32F);
+    K.getMat(cv::ACCESS_FAST).at<float>(0,0) = fx;
+    K.getMat(cv::ACCESS_FAST).at<float>(1,1) = fy;
+    K.getMat(cv::ACCESS_FAST).at<float>(0,2) = cx;
+    K.getMat(cv::ACCESS_FAST).at<float>(1,2) = cy;
     K.copyTo(mK);
 
-    cv::Mat DistCoef(4,1,CV_32F);
-    DistCoef.at<float>(0) = fSettings["Camera.k1"];
-    DistCoef.at<float>(1) = fSettings["Camera.k2"];
-    DistCoef.at<float>(2) = fSettings["Camera.p1"];
-    DistCoef.at<float>(3) = fSettings["Camera.p2"];
+    cv::UMat DistCoef(4,1,CV_32F);
+    DistCoef.getMat(cv::ACCESS_FAST).at<float>(0) = fSettings["Camera.k1"];
+    DistCoef.getMat(cv::ACCESS_FAST).at<float>(1) = fSettings["Camera.k2"];
+    DistCoef.getMat(cv::ACCESS_FAST).at<float>(2) = fSettings["Camera.p1"];
+    DistCoef.getMat(cv::ACCESS_FAST).at<float>(3) = fSettings["Camera.p2"];
     const float k3 = fSettings["Camera.k3"];
     if(k3!=0)
     {
-        DistCoef.resize(5);
-        DistCoef.at<float>(4) = k3;
+        DistCoef.getMat(cv::ACCESS_FAST).resize(5);
+        DistCoef.getMat(cv::ACCESS_FAST).at<float>(4) = k3;
     }
     DistCoef.copyTo(mDistCoef);
 

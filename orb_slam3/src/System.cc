@@ -74,6 +74,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
        exit(-1);
     }
 
+
     cv::FileNode node = fsSettings["File.version"];
     if(!node.empty() && node.isString() && node.string() == "1.0"){
         settings_ = new Settings(strSettingsFile,mSensor);
@@ -86,6 +87,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     else{
         settings_ = nullptr;
         cv::FileNode node = fsSettings["System.LoadAtlasFromFile"];
+        
         if(!node.empty() && node.isString())
         {
             mStrLoadAtlasFromFile = (string)node;
@@ -158,7 +160,6 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         //usleep(10*1000*1000);
     }
 
-
     if (mSensor==IMU_STEREO || mSensor==IMU_MONOCULAR || mSensor==IMU_RGBD)
         mpAtlas->SetInertialSensor();
 
@@ -188,6 +189,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     }
     else
         mpLocalMapper->mbFarPoints = false;
+
 
     //Initialize the Loop Closing thread and launch
     // mSensor!=MONOCULAR && mSensor!=IMU_MONOCULAR
@@ -221,7 +223,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
 }
 
-Sophus::SE3f System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp, const vector<IMU::Point>& vImuMeas, string filename)
+Sophus::SE3f System::TrackStereo(const cv::UMat &imLeft, const cv::UMat &imRight, const double &timestamp, const vector<IMU::Point>& vImuMeas, string filename)
 {
     if(mSensor!=STEREO && mSensor!=IMU_STEREO)
     {
@@ -229,12 +231,12 @@ Sophus::SE3f System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, 
         exit(-1);
     }
 
-    cv::Mat imLeftToFeed, imRightToFeed;
+    cv::UMat imLeftToFeed, imRightToFeed;
     if(settings_ && settings_->needToRectify()){
-        cv::Mat M1l = settings_->M1l();
-        cv::Mat M2l = settings_->M2l();
-        cv::Mat M1r = settings_->M1r();
-        cv::Mat M2r = settings_->M2r();
+        cv::UMat M1l = settings_->M1l();
+        cv::UMat M2l = settings_->M2l();
+        cv::UMat M1r = settings_->M1r();
+        cv::UMat M2r = settings_->M2r();
 
         cv::remap(imLeft, imLeftToFeed, M1l, M2l, cv::INTER_LINEAR);
         cv::remap(imRight, imRightToFeed, M1r, M2r, cv::INTER_LINEAR);
@@ -305,7 +307,7 @@ Sophus::SE3f System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, 
     return Tcw;
 }
 
-Sophus::SE3f System::TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const double &timestamp, const vector<IMU::Point>& vImuMeas, string filename)
+Sophus::SE3f System::TrackRGBD(const cv::UMat &im, const cv::UMat &depthmap, const double &timestamp, const vector<IMU::Point>& vImuMeas, string filename)
 {
     if(mSensor!=RGBD  && mSensor!=IMU_RGBD)
     {
@@ -313,10 +315,10 @@ Sophus::SE3f System::TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const
         exit(-1);
     }
 
-    cv::Mat imToFeed = im.clone();
-    cv::Mat imDepthToFeed = depthmap.clone();
+    cv::UMat imToFeed = im.clone();
+    cv::UMat imDepthToFeed = depthmap.clone();
     if(settings_ && settings_->needToResize()){
-        cv::Mat resizedIm;
+        cv::UMat resizedIm;
         cv::resize(im,resizedIm,settings_->newImSize());
         imToFeed = resizedIm;
 
@@ -376,7 +378,7 @@ Sophus::SE3f System::TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const
     return Tcw;
 }
 
-Sophus::SE3f System::TrackMonocular(const cv::Mat &im, const double &timestamp, const vector<IMU::Point>& vImuMeas, string filename)
+Sophus::SE3f System::TrackMonocular(const cv::UMat &im, const double &timestamp, const vector<IMU::Point>& vImuMeas, string filename)
 {
 
     {
@@ -391,9 +393,9 @@ Sophus::SE3f System::TrackMonocular(const cv::Mat &im, const double &timestamp, 
         exit(-1);
     }
 
-    cv::Mat imToFeed = im.clone();
+    cv::UMat imToFeed = im.clone();
     if(settings_ && settings_->needToResize()){
-        cv::Mat resizedIm;
+        cv::UMat resizedIm;
         cv::resize(im,resizedIm,settings_->newImSize());
         imToFeed = resizedIm;
     }
@@ -732,7 +734,7 @@ void System::SaveTrajectoryEuRoC(const string &filename)
 
         Trw = Trw * pKF->GetPose()*Twb; // Tcp*Tpw*Twb0=Tcb0 where b0 is the new world reference
 
-        // cout << "4" << endl;
+        cout << "4" << endl;
 
         if (mSensor == IMU_MONOCULAR || mSensor == IMU_STEREO || mSensor==IMU_RGBD)
         {
@@ -749,7 +751,7 @@ void System::SaveTrajectoryEuRoC(const string &filename)
             f << setprecision(6) << 1e9*(*lT) << " " <<  setprecision(9) << twc(0) << " " << twc(1) << " " << twc(2) << " " << q.x() << " " << q.y() << " " << q.z() << " " << q.w() << endl;
         }
 
-        // cout << "5" << endl;
+        cout << "5" << endl;
     }
     //cout << "end saving trajectory" << endl;
     f.close();
@@ -837,7 +839,7 @@ void System::SaveTrajectoryEuRoC(const string &filename, Map* pMap)
 
         Trw = Trw * pKF->GetPose()*Twb; // Tcp*Tpw*Twb0=Tcb0 where b0 is the new world reference
 
-        // cout << "4" << endl;
+        cout << "4" << endl;
 
         if (mSensor == IMU_MONOCULAR || mSensor == IMU_STEREO || mSensor==IMU_RGBD)
         {
@@ -854,7 +856,7 @@ void System::SaveTrajectoryEuRoC(const string &filename, Map* pMap)
             f << setprecision(6) << 1e9*(*lT) << " " <<  setprecision(9) << twc(0) << " " << twc(1) << " " << twc(2) << " " << q.x() << " " << q.y() << " " << q.z() << " " << q.w() << endl;
         }
 
-        // cout << "5" << endl;
+        cout << "5" << endl;
     }
     //cout << "end saving trajectory" << endl;
     f.close();
@@ -1017,18 +1019,18 @@ void System::SaveTrajectoryEuRoC(const string &filename, Map* pMap)
             continue;
         if (mSensor == IMU_MONOCULAR || mSensor == IMU_STEREO || mSensor==IMU_RGBD)
         {
-            cv::Mat R = pKF->GetImuRotation().t();
+            cv::UMat R = pKF->GetImuRotation().t();
             vector<float> q = Converter::toQuaternion(R);
-            cv::Mat twb = pKF->GetImuPosition();
-            f << setprecision(6) << 1e9*pKF->mTimeStamp  << " " <<  setprecision(9) << twb.at<float>(0) << " " << twb.at<float>(1) << " " << twb.at<float>(2) << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;
+            cv::UMat twb = pKF->GetImuPosition();
+            f << setprecision(6) << 1e9*pKF->mTimeStamp  << " " <<  setprecision(9) << twb.getMat(cv::ACCESS_FAST).at<float>(0) << " " << twb.getMat(cv::ACCESS_FAST).at<float>(1) << " " << twb.getMat(cv::ACCESS_FAST).at<float>(2) << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;
 
         }
         else
         {
-            cv::Mat R = pKF->GetRotation();
+            cv::UMat R = pKF->GetRotation();
             vector<float> q = Converter::toQuaternion(R);
-            cv::Mat t = pKF->GetCameraCenter();
-            f << setprecision(6) << 1e9*pKF->mTimeStamp << " " <<  setprecision(9) << t.at<float>(0) << " " << t.at<float>(1) << " " << t.at<float>(2) << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;
+            cv::UMat t = pKF->GetCameraCenter();
+            f << setprecision(6) << 1e9*pKF->mTimeStamp << " " <<  setprecision(9) << t.getMat(cv::ACCESS_FAST).at<float>(0) << " " << t.getMat(cv::ACCESS_FAST).at<float>(1) << " " << t.getMat(cv::ACCESS_FAST).at<float>(2) << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;
         }
     }
     f.close();
@@ -1144,7 +1146,7 @@ void System::SaveKeyFrameTrajectoryEuRoC(const string &filename, Map* pMap)
 
     // Transform all keyframes so that the first keyframe is at the origin.
     // After a loop closure the first keyframe might not be at the origin.
-    cv::Mat Two = vpKFs[0]->GetPoseInverse();
+    cv::UMat Two = vpKFs[0]->GetPoseInverse();
 
     ofstream f;
     f.open(filename.c_str());
@@ -1158,11 +1160,11 @@ void System::SaveKeyFrameTrajectoryEuRoC(const string &filename, Map* pMap)
     // which is true when tracking failed (lbL).
     list<ORB_SLAM3::KeyFrame*>::iterator lRit = mpTracker->mlpReferences.begin();
     list<double>::iterator lT = mpTracker->mlFrameTimes.begin();
-    for(list<cv::Mat>::iterator lit=mpTracker->mlRelativeFramePoses.begin(), lend=mpTracker->mlRelativeFramePoses.end();lit!=lend;lit++, lRit++, lT++)
+    for(list<cv::UMat>::iterator lit=mpTracker->mlRelativeFramePoses.begin(), lend=mpTracker->mlRelativeFramePoses.end();lit!=lend;lit++, lRit++, lT++)
     {
         ORB_SLAM3::KeyFrame* pKF = *lRit;
 
-        cv::Mat Trw = cv::Mat::eye(4,4,CV_32F);
+        cv::UMat Trw = cv::UMat::eye(4,4,CV_32F);
 
         while(pKF->isBad())
         {
@@ -1172,13 +1174,13 @@ void System::SaveKeyFrameTrajectoryEuRoC(const string &filename, Map* pMap)
 
         Trw = Trw * pKF->GetPoseCv() * Two;
 
-        cv::Mat Tcw = (*lit)*Trw;
-        cv::Mat Rwc = Tcw.rowRange(0,3).colRange(0,3).t();
-        cv::Mat twc = -Rwc*Tcw.rowRange(0,3).col(3);
+        cv::UMat Tcw = (*lit)*Trw;
+        cv::UMat Rwc = Tcw.rowRange(0,3).colRange(0,3).t();
+        cv::UMat twc = -Rwc*Tcw.rowRange(0,3).col(3);
 
-        f << setprecision(9) << Rwc.at<float>(0,0) << " " << Rwc.at<float>(0,1)  << " " << Rwc.at<float>(0,2) << " "  << twc.at<float>(0) << " " <<
-             Rwc.at<float>(1,0) << " " << Rwc.at<float>(1,1)  << " " << Rwc.at<float>(1,2) << " "  << twc.at<float>(1) << " " <<
-             Rwc.at<float>(2,0) << " " << Rwc.at<float>(2,1)  << " " << Rwc.at<float>(2,2) << " "  << twc.at<float>(2) << endl;
+        f << setprecision(9) << Rwc.getMat(cv::ACCESS_FAST).at<float>(0,0) << " " << Rwc.getMat(cv::ACCESS_FAST).at<float>(0,1)  << " " << Rwc.getMat(cv::ACCESS_FAST).at<float>(0,2) << " "  << twc.getMat(cv::ACCESS_FAST).at<float>(0) << " " <<
+             Rwc.getMat(cv::ACCESS_FAST).at<float>(1,0) << " " << Rwc.getMat(cv::ACCESS_FAST).at<float>(1,1)  << " " << Rwc.getMat(cv::ACCESS_FAST).at<float>(1,2) << " "  << twc.getMat(cv::ACCESS_FAST).at<float>(1) << " " <<
+             Rwc.getMat(cv::ACCESS_FAST).at<float>(2,0) << " " << Rwc.getMat(cv::ACCESS_FAST).at<float>(2,1)  << " " << Rwc.getMat(cv::ACCESS_FAST).at<float>(2,2) << " "  << twc.getMat(cv::ACCESS_FAST).at<float>(2) << endl;
     }
     f.close();
 }*/
@@ -1316,7 +1318,7 @@ vector<cv::KeyPoint> System::GetTrackedKeyPointsUn()
     return mTrackedKeyPointsUn;
 }
 
-cv::Mat System::GetCurrentFrame () {
+cv::UMat System::GetCurrentFrame () {
     return mpFrameDrawer->DrawFrame();
 }
 
@@ -1415,9 +1417,12 @@ bool System::SaveAtlas(int type){
             mpAtlas->PreSave();
             // cout << "Finished presave operation" << endl;
 
-            string pathSaveFileName = "./";
+            // string pathSaveFileName = "./";
+            // pathSaveFileName = pathSaveFileName.append(mStrSaveAtlasToFile);
+            // pathSaveFileName = pathSaveFileName.append(".osa");
+
+            string pathSaveFileName = "";
             pathSaveFileName = pathSaveFileName.append(mStrSaveAtlasToFile);
-            pathSaveFileName = pathSaveFileName.append(".osa");
 
             string strVocabularyChecksum = CalculateCheckSum(mStrVocabularyFilePath,TEXT_FILE);
             std::size_t found = mStrVocabularyFilePath.find_last_of("/\\");
@@ -1463,9 +1468,12 @@ bool System::LoadAtlas(int type)
     string strFileVoc, strVocChecksum;
     bool isRead = false;
 
-    string pathLoadFileName = "./";
+    // string pathLoadFileName = "./";
+    // pathLoadFileName = pathLoadFileName.append(mStrLoadAtlasFromFile);
+    // pathLoadFileName = pathLoadFileName.append(".osa");
+
+    string pathLoadFileName = "";
     pathLoadFileName = pathLoadFileName.append(mStrLoadAtlasFromFile);
-    pathLoadFileName = pathLoadFileName.append(".osa");
 
     if(type == TEXT_FILE) // File text
     {

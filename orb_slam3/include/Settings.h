@@ -68,8 +68,11 @@ namespace ORB_SLAM3 {
         CameraType cameraType() {return cameraType_;}
         GeometricCamera* camera1() {return calibration1_;}
         GeometricCamera* camera2() {return calibration2_;}
-        cv::Mat camera1DistortionCoef() {return cv::Mat(vPinHoleDistorsion1_.size(),1,CV_32F,vPinHoleDistorsion1_.data());}
-        cv::Mat camera2DistortionCoef() {return cv::Mat(vPinHoleDistorsion2_.size(),1,CV_32F,vPinHoleDistorsion2_.data());}
+
+        cv::Mat temp1 = cv::Mat(vPinHoleDistorsion1_.size(),1,CV_32F,vPinHoleDistorsion1_.data());
+        cv::Mat temp2 = cv::Mat(vPinHoleDistorsion2_.size(),1,CV_32F,vPinHoleDistorsion2_.data());
+        cv::UMat camera1DistortionCoef() {return temp1.getUMat(cv::ACCESS_FAST);}
+        cv::UMat camera2DistortionCoef() {return temp2.getUMat(cv::ACCESS_FAST);}
 
         Sophus::SE3f Tlr() {return Tlr_;}
         float bf() {return bf_;}
@@ -117,10 +120,10 @@ namespace ORB_SLAM3 {
 
         float thFarPoints() {return thFarPoints_;}
 
-        cv::Mat M1l() {return M1l_;}
-        cv::Mat M2l() {return M2l_;}
-        cv::Mat M1r() {return M1r_;}
-        cv::Mat M2r() {return M2r_;}
+        cv::UMat M1l() {return M1l_;}
+        cv::UMat M2l() {return M2l_;}
+        cv::UMat M1r() {return M1r_;}
+        cv::UMat M2r() {return M2r_;}
 
     private:
         template<typename T>
@@ -181,8 +184,8 @@ namespace ORB_SLAM3 {
         /*
          * Rectification stuff
          */
-        cv::Mat M1l_, M2l_;
-        cv::Mat M1r_, M2r_;
+        cv::UMat M1l_, M2l_;
+        cv::UMat M1r_, M2r_;
 
         /*
          * Inertial stuff

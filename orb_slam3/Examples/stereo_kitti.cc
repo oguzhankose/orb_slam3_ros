@@ -63,7 +63,7 @@ int main(int argc, char **argv)
     double t_resize = 0.f;
 
     // Main loop
-    cv::Mat imLeft, imRight;
+    cv::UMat imLeft, imRight;
     for(int ni=0; ni<nImages; ni++)
     {
         // Read left and right images from file

@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
     vector<double> v_acc_timestamp;
     vector<rs2_vector> v_acc_data;
 
-    cv::Mat imCV_left, imCV_right;
+    cv::UMat imCV_left, imCV_right;
     int width_img, height_img;
     double timestamp_image;
     bool image_ready = false;
@@ -146,8 +146,8 @@ int main(int argc, char **argv) {
         {
             rs2::video_frame color_frame_left = fs.get_fisheye_frame(1);
             rs2::video_frame color_frame_right = fs.get_fisheye_frame(2);
-            imCV_left = cv::Mat(cv::Size(width_img, height_img), CV_8U, (void*)(color_frame_left.get_data()), cv::Mat::AUTO_STEP);
-            imCV_right = cv::Mat(cv::Size(width_img, height_img), CV_8U, (void*)(color_frame_right.get_data()), cv::Mat::AUTO_STEP);
+            imCV_left = cv::UMat(cv::Size(width_img, height_img), CV_8U, (void*)(color_frame_left.get_data()), cv::UMat::AUTO_STEP);
+            imCV_right = cv::UMat(cv::Size(width_img, height_img), CV_8U, (void*)(color_frame_right.get_data()), cv::UMat::AUTO_STEP);
 
             timestamp_image = fs.get_timestamp()*1e-3;
             image_ready = true;
@@ -181,7 +181,7 @@ int main(int argc, char **argv) {
     width_img = intrinsics_cam.width;
     height_img = intrinsics_cam.height;
 
-    cv::Mat imLeft, imRight;
+    cv::UMat imLeft, imRight;
     ofstream accFile, gyroFile, cam0TsFile, cam1TsFile;
     accFile.open (directory + "/IMU/acc.txt");
     gyroFile.open (directory + "/IMU/gyro.txt");

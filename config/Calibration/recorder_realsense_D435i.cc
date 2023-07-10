@@ -161,7 +161,7 @@ int main(int argc, char **argv) {
     vector<double> v_acc_timestamp;
     vector<rs2_vector> v_acc_data;
 
-    cv::Mat imCV;
+    cv::UMat imCV;
     int width_img, height_img;
     double timestamp_image;
     bool image_ready = false;
@@ -174,7 +174,7 @@ int main(int argc, char **argv) {
         if(rs2::frameset fs = frame.as<rs2::frameset>())
         {
             rs2::video_frame color_frame = fs.get_infrared_frame();
-            imCV = cv::Mat(cv::Size(width_img, height_img), CV_8U, (void*)(color_frame.get_data()), cv::Mat::AUTO_STEP);
+            imCV = cv::UMat(cv::Size(width_img, height_img), CV_8U, (void*)(color_frame.get_data()), cv::UMat::AUTO_STEP);
 
             timestamp_image = fs.get_timestamp()*1e-3;
             image_ready = true;
@@ -207,7 +207,7 @@ int main(int argc, char **argv) {
     width_img = intrinsics_cam.width;
     height_img = intrinsics_cam.height;
 
-    cv::Mat im;
+    cv::UMat im;
     ofstream accFile, gyroFile, cam0TsFile;
     accFile.open (directory + "/IMU/acc.txt");
     gyroFile.open (directory + "/IMU/gyro.txt");

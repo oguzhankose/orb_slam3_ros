@@ -171,7 +171,7 @@ void publish_tf_transform(Sophus::SE3f T_SE3f, string frame_id, string child_fra
     tf_broadcaster.sendTransform(tf::StampedTransform(tf_transform, msg_time, frame_id, child_frame_id));
 }
 
-void publish_tracking_img(cv::Mat image, ros::Time msg_time)
+void publish_tracking_img(cv::UMat image, ros::Time msg_time)
 {
     std_msgs::Header header;
 
@@ -179,7 +179,7 @@ void publish_tracking_img(cv::Mat image, ros::Time msg_time)
 
     header.frame_id = world_frame_id;
 
-    const sensor_msgs::ImagePtr rendered_image_msg = cv_bridge::CvImage(header, "bgr8", image).toImageMsg();
+    const sensor_msgs::ImagePtr rendered_image_msg = cv_bridge::CvImage(header, "bgr8", image.getMat(cv::ACCESS_FAST)).toImageMsg();
 
     tracking_img_pub.publish(rendered_image_msg);
 }
@@ -354,9 +354,9 @@ sensor_msgs::PointCloud2 mappoint_to_pointcloud(std::vector<ORB_SLAM3::MapPoint*
     return cloud;
 }
 
-cv::Mat SE3f_to_cvMat(Sophus::SE3f T_SE3f)
+cv::UMat SE3f_to_cvMat(Sophus::SE3f T_SE3f)
 {
-    cv::Mat T_cvmat;
+    cv::UMat T_cvmat;
 
     Eigen::Matrix4f T_Eig3f = T_SE3f.matrix();
     cv::eigen2cv(T_Eig3f, T_cvmat);

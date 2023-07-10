@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
 void ImageGrabber::GrabRGBD(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageConstPtr& msgD)
 {
-    // Copy the ros image message to cv::Mat.
+    // Copy the ros image message to cv::UMat.
     cv_bridge::CvImageConstPtr cv_ptrRGB;
     try
     {
@@ -101,7 +101,7 @@ void ImageGrabber::GrabRGBD(const sensor_msgs::ImageConstPtr& msgRGB,const senso
     }
     
     // ORB-SLAM3 runs in TrackRGBD()
-    Sophus::SE3f Tcw = pSLAM->TrackRGBD(cv_ptrRGB->image, cv_ptrD->image, cv_ptrRGB->header.stamp.toSec());
+    Sophus::SE3f Tcw = pSLAM->TrackRGBD(cv_ptrRGB->image.getUMat(cv::ACCESS_FAST), cv_ptrD->image.getUMat(cv::ACCESS_FAST), cv_ptrRGB->header.stamp.toSec());
 
     ros::Time msg_time = cv_ptrRGB->header.stamp;
 

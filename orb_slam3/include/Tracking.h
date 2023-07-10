@@ -69,9 +69,9 @@ public:
     bool ParseIMUParamFile(cv::FileStorage &fSettings);
 
     // Preprocess the input and call Track(). Extract features and performs stereo matching.
-    Sophus::SE3f GrabImageStereo(const cv::Mat &imRectLeft,const cv::Mat &imRectRight, const double &timestamp, string filename);
-    Sophus::SE3f GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const double &timestamp, string filename);
-    Sophus::SE3f GrabImageMonocular(const cv::Mat &im, const double &timestamp, string filename);
+    Sophus::SE3f GrabImageStereo(const cv::UMat &imRectLeft,const cv::UMat &imRectRight, const double &timestamp, string filename);
+    Sophus::SE3f GrabImageRGBD(const cv::UMat &imRGB,const cv::UMat &imD, const double &timestamp, string filename);
+    Sophus::SE3f GrabImageMonocular(const cv::UMat &im, const double &timestamp, string filename);
 
     void GrabImuData(const IMU::Point &imuMeasurement);
 
@@ -143,7 +143,7 @@ public:
     Frame mCurrentFrame;
     Frame mLastFrame;
 
-    cv::Mat mImGray;
+    cv::UMat mImGray;
 
     // Initialization Variables (Monocular)
     std::vector<int> mvIniLastMatches;
@@ -293,9 +293,9 @@ protected:
     Atlas* mpAtlas;
 
     //Calibration matrix
-    cv::Mat mK;
+    cv::UMat mK;
     Eigen::Matrix3f mK_;
-    cv::Mat mDistCoef;
+    cv::UMat mDistCoef;
     float mbf;
     float mImageScale;
 
@@ -373,7 +373,7 @@ protected:
 #endif
 
 public:
-    cv::Mat mImRight;
+    cv::UMat mImRight;
 };
 
 } //namespace ORB_SLAM

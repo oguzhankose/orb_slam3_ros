@@ -157,7 +157,7 @@ int main(int argc, char **argv) {
     std::mutex imu_mutex;
     std::condition_variable cond_image_rec;
 
-    cv::Mat imCV, imRightCV;
+    cv::UMat imCV, imRightCV;
     int width_img, height_img;
     double timestamp_image = -1.0;
     bool image_ready = false;
@@ -181,8 +181,8 @@ int main(int argc, char **argv) {
             rs2::video_frame ir_frameL = fs.get_infrared_frame(1);
             rs2::video_frame ir_frameR = fs.get_infrared_frame(2);
 
-            imCV = cv::Mat(cv::Size(width_img, height_img), CV_8U, (void*)(ir_frameL.get_data()), cv::Mat::AUTO_STEP);
-            imRightCV = cv::Mat(cv::Size(width_img, height_img), CV_8U, (void*)(ir_frameR.get_data()), cv::Mat::AUTO_STEP);
+            imCV = cv::UMat(cv::Size(width_img, height_img), CV_8U, (void*)(ir_frameL.get_data()), cv::UMat::AUTO_STEP);
+            imRightCV = cv::UMat(cv::Size(width_img, height_img), CV_8U, (void*)(ir_frameR.get_data()), cv::UMat::AUTO_STEP);
 
             timestamp_image = fs.get_timestamp()*1e-3;
             image_ready = true;
@@ -242,7 +242,7 @@ int main(int argc, char **argv) {
     float imageScale = SLAM.GetImageScale();
 
     double timestamp;
-    cv::Mat im, imRight;
+    cv::UMat im, imRight;
 
     double t_resize = 0.f;
     double t_track = 0.f;

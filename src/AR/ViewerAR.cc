@@ -31,12 +31,12 @@ namespace ORB_SLAM3
 
 const float eps = 1e-4;
 
-cv::Mat ExpSO3(const float &x, const float &y, const float &z)
+cv::UMat ExpSO3(const float &x, const float &y, const float &z)
 {
-    cv::Mat I = cv::Mat::eye(3,3,CV_32F);
+    cv::UMat I = cv::UMat::eye(3,3,CV_32F);
     const float d2 = x*x+y*y+z*z;
     const float d = sqrt(d2);
-    cv::Mat W = (cv::Mat_<float>(3,3) << 0, -z, y,
+    cv::UMat W = (cv::Mat_<float>(3,3) << 0, -z, y,
                  z, 0, -x,
                  -y,  x, 0);
     if(d<eps)
@@ -45,9 +45,9 @@ cv::Mat ExpSO3(const float &x, const float &y, const float &z)
         return (I + W*sin(d)/d + W*W*(1.0f-cos(d))/d2);
 }
 
-cv::Mat ExpSO3(const cv::Mat &v)
+cv::UMat ExpSO3(const cv::UMat &v)
 {
-    return ExpSO3(v.at<float>(0),v.at<float>(1),v.at<float>(2));
+    return ExpSO3(v.getMat(cv::ACCESS_FAST).at<float>(0),v.getMat(cv::ACCESS_FAST).at<float>(1),v.getMat(cv::ACCESS_FAST).at<float>(2));
 }
 
 ViewerAR::ViewerAR(){}
@@ -56,7 +56,7 @@ void ViewerAR::Run()
 {
     int w,h,wui;
 
-    cv::Mat im, Tcw;
+    cv::UMat im, Tcw;
     int status;
     vector<cv::KeyPoint> vKeys;
     vector<MapPoint*> vMPs;
@@ -233,7 +233,7 @@ void ViewerAR::Run()
 
 }
 
-void ViewerAR::SetImagePose(const cv::Mat &im, const cv::Mat &Tcw, const int &status, const vector<cv::KeyPoint> &vKeys, const vector<ORB_SLAM3::MapPoint*> &vMPs)
+void ViewerAR::SetImagePose(const cv::UMat &im, const cv::UMat &Tcw, const int &status, const vector<cv::KeyPoint> &vKeys, const vector<ORB_SLAM3::MapPoint*> &vMPs)
 {
     unique_lock<mutex> lock(mMutexPoseImage);
     mImage = im.clone();
@@ -243,7 +243,7 @@ void ViewerAR::SetImagePose(const cv::Mat &im, const cv::Mat &Tcw, const int &st
     mvMPs = vMPs;
 }
 
-void ViewerAR::GetImagePose(cv::Mat &im, cv::Mat &Tcw, int &status, std::vector<cv::KeyPoint> &vKeys,  std::vector<MapPoint*> &vMPs)
+void ViewerAR::GetImagePose(cv::UMat &im, cv::UMat &Tcw, int &status, std::vector<cv::KeyPoint> &vKeys,  std::vector<MapPoint*> &vMPs)
 {
     unique_lock<mutex> lock(mMutexPoseImage);
     im = mImage.clone();
@@ -253,37 +253,37 @@ void ViewerAR::GetImagePose(cv::Mat &im, cv::Mat &Tcw, int &status, std::vector<
     vMPs = mvMPs;
 }
 
-void ViewerAR::LoadCameraPose(const cv::Mat &Tcw)
+void ViewerAR::LoadCameraPose(const cv::UMat &Tcw)
 {
     if(!Tcw.empty())
     {
         pangolin::OpenGlMatrix M;
 
-        M.m[0] = Tcw.at<float>(0,0);
-        M.m[1] = Tcw.at<float>(1,0);
-        M.m[2] = Tcw.at<float>(2,0);
+        M.m[0] = Tcw.getMat(cv::ACCESS_FAST).at<float>(0,0);
+        M.m[1] = Tcw.getMat(cv::ACCESS_FAST).at<float>(1,0);
+        M.m[2] = Tcw.getMat(cv::ACCESS_FAST).at<float>(2,0);
         M.m[3]  = 0.0;
 
-        M.m[4] = Tcw.at<float>(0,1);
-        M.m[5] = Tcw.at<float>(1,1);
-        M.m[6] = Tcw.at<float>(2,1);
+        M.m[4] = Tcw.getMat(cv::ACCESS_FAST).at<float>(0,1);
+        M.m[5] = Tcw.getMat(cv::ACCESS_FAST).at<float>(1,1);
+        M.m[6] = Tcw.getMat(cv::ACCESS_FAST).at<float>(2,1);
         M.m[7]  = 0.0;
 
-        M.m[8] = Tcw.at<float>(0,2);
-        M.m[9] = Tcw.at<float>(1,2);
-        M.m[10] = Tcw.at<float>(2,2);
+        M.m[8] = Tcw.getMat(cv::ACCESS_FAST).at<float>(0,2);
+        M.m[9] = Tcw.getMat(cv::ACCESS_FAST).at<float>(1,2);
+        M.m[10] = Tcw.getMat(cv::ACCESS_FAST).at<float>(2,2);
         M.m[11]  = 0.0;
 
-        M.m[12] = Tcw.at<float>(0,3);
-        M.m[13] = Tcw.at<float>(1,3);
-        M.m[14] = Tcw.at<float>(2,3);
+        M.m[12] = Tcw.getMat(cv::ACCESS_FAST).at<float>(0,3);
+        M.m[13] = Tcw.getMat(cv::ACCESS_FAST).at<float>(1,3);
+        M.m[14] = Tcw.getMat(cv::ACCESS_FAST).at<float>(2,3);
         M.m[15]  = 1.0;
 
         M.Load();
     }
 }
 
-void ViewerAR::PrintStatus(const int &status, const bool &bLocMode, cv::Mat &im)
+void ViewerAR::PrintStatus(const int &status, const bool &bLocMode, cv::UMat &im)
 {
     if(!bLocMode)
     {
@@ -305,10 +305,10 @@ void ViewerAR::PrintStatus(const int &status, const bool &bLocMode, cv::Mat &im)
     }
 }
 
-void ViewerAR::AddTextToImage(const string &s, cv::Mat &im, const int r, const int g, const int b)
+void ViewerAR::AddTextToImage(const string &s, cv::UMat &im, const int r, const int g, const int b)
 {
     int l = 10;
-    //imText.rowRange(im.rows-imText.rows,imText.rows) = cv::Mat::zeros(textSize.height+10,im.cols,im.type());
+    //imText.rowRange(im.rows-imText.rows,imText.rows) = cv::UMat::zeros(textSize.height+10,im.cols,im.type());
     cv::putText(im,s,cv::Point(l,im.rows-l),cv::FONT_HERSHEY_PLAIN,1.5,cv::Scalar(255,255,255),2,8);
     cv::putText(im,s,cv::Point(l-1,im.rows-l),cv::FONT_HERSHEY_PLAIN,1.5,cv::Scalar(255,255,255),2,8);
     cv::putText(im,s,cv::Point(l+1,im.rows-l),cv::FONT_HERSHEY_PLAIN,1.5,cv::Scalar(255,255,255),2,8);
@@ -322,7 +322,7 @@ void ViewerAR::AddTextToImage(const string &s, cv::Mat &im, const int r, const i
     cv::putText(im,s,cv::Point(l,im.rows-l),cv::FONT_HERSHEY_PLAIN,1.5,cv::Scalar(r,g,b),2,8);
 }
 
-void ViewerAR::DrawImageTexture(pangolin::GlTexture &imageTexture, cv::Mat &im)
+void ViewerAR::DrawImageTexture(pangolin::GlTexture &imageTexture, cv::UMat &im)
 {
     if(!im.empty())
     {
@@ -373,7 +373,7 @@ void ViewerAR::DrawPlane(int ndivs, float ndivsize)
 
 }
 
-void ViewerAR::DrawTrackedPoints(const std::vector<cv::KeyPoint> &vKeys, const std::vector<MapPoint *> &vMPs, cv::Mat &im)
+void ViewerAR::DrawTrackedPoints(const std::vector<cv::KeyPoint> &vKeys, const std::vector<MapPoint *> &vMPs, cv::UMat &im)
 {
     const int N = vKeys.size();
 
@@ -387,10 +387,10 @@ void ViewerAR::DrawTrackedPoints(const std::vector<cv::KeyPoint> &vKeys, const s
     }
 }
 
-Plane* ViewerAR::DetectPlane(const cv::Mat Tcw, const std::vector<MapPoint*> &vMPs, const int iterations)
+Plane* ViewerAR::DetectPlane(const cv::UMat Tcw, const std::vector<MapPoint*> &vMPs, const int iterations)
 {
     // Retrieve 3D points
-    vector<cv::Mat> vPoints;
+    vector<cv::UMat> vPoints;
     vPoints.reserve(vMPs.size());
     vector<MapPoint*> vPointMP;
     vPointMP.reserve(vMPs.size());
@@ -432,8 +432,8 @@ Plane* ViewerAR::DetectPlane(const cv::Mat Tcw, const std::vector<MapPoint*> &vM
     {
         vAvailableIndices = vAllIndices;
 
-        cv::Mat A(3,4,CV_32F);
-        A.col(3) = cv::Mat::ones(3,1,CV_32F);
+        cv::UMat A(3,4,CV_32F);
+        A.col(3) = cv::UMat::ones(3,1,CV_32F);
 
         // Get min set of points
         for(short i = 0; i < 3; ++i)
@@ -448,13 +448,13 @@ Plane* ViewerAR::DetectPlane(const cv::Mat Tcw, const std::vector<MapPoint*> &vM
             vAvailableIndices.pop_back();
         }
 
-        cv::Mat u,w,vt;
+        cv::UMat u,w,vt;
         cv::SVDecomp(A,w,u,vt,cv::SVD::MODIFY_A | cv::SVD::FULL_UV);
 
-        const float a = vt.at<float>(3,0);
-        const float b = vt.at<float>(3,1);
-        const float c = vt.at<float>(3,2);
-        const float d = vt.at<float>(3,3);
+        const float a = vt.getMat(cv::ACCESS_FAST).at<float>(3,0);
+        const float b = vt.getMat(cv::ACCESS_FAST).at<float>(3,1);
+        const float c = vt.getMat(cv::ACCESS_FAST).at<float>(3,2);
+        const float d = vt.getMat(cv::ACCESS_FAST).at<float>(3,3);
 
         vector<float> vDistances(N,0);
 
@@ -462,7 +462,7 @@ Plane* ViewerAR::DetectPlane(const cv::Mat Tcw, const std::vector<MapPoint*> &vM
 
         for(int i=0; i<N; i++)
         {
-            vDistances[i] = fabs(vPoints[i].at<float>(0)*a+vPoints[i].at<float>(1)*b+vPoints[i].at<float>(2)*c+d)*f;
+            vDistances[i] = fabs(vPoints[i].getMat(cv::ACCESS_FAST).at<float>(0)*a+vPoints[i].getMat(cv::ACCESS_FAST).at<float>(1)*b+vPoints[i].getMat(cv::ACCESS_FAST).at<float>(2)*c+d)*f;
         }
 
         vector<float> vSorted = vDistances;
@@ -505,7 +505,7 @@ Plane* ViewerAR::DetectPlane(const cv::Mat Tcw, const std::vector<MapPoint*> &vM
     return new Plane(vInlierMPs,Tcw);
 }
 
-Plane::Plane(const std::vector<MapPoint *> &vMPs, const cv::Mat &Tcw):mvMPs(vMPs),mTcw(Tcw.clone())
+Plane::Plane(const std::vector<MapPoint *> &vMPs, const cv::UMat &Tcw):mvMPs(vMPs),mTcw(Tcw.clone())
 {
     rang = -3.14f/2+((float)rand()/RAND_MAX)*3.14f;
     Recompute();
@@ -516,10 +516,10 @@ void Plane::Recompute()
     const int N = mvMPs.size();
 
     // Recompute plane with all points
-    cv::Mat A = cv::Mat(N,4,CV_32F);
-    A.col(3) = cv::Mat::ones(N,1,CV_32F);
+    cv::UMat A = cv::UMat(N,4,CV_32F);
+    A.col(3) = cv::UMat::ones(N,1,CV_32F);
 
-    o = cv::Mat::zeros(3,1,CV_32F);
+    o = cv::UMat::zeros(3,1,CV_32F);
 
     int nPoints = 0;
     for(int i=0; i<N; i++)
@@ -527,7 +527,7 @@ void Plane::Recompute()
         MapPoint* pMP = mvMPs[i];
         if(!pMP->isBad())
         {
-            cv::Mat Xw = pMP->GetWorldPos();
+            cv::UMat Xw = pMP->GetWorldPos();
             o+=Xw;
             A.row(nPoints).colRange(0,3) = Xw.t();
             nPoints++;
@@ -535,12 +535,12 @@ void Plane::Recompute()
     }
     A.resize(nPoints);
 
-    cv::Mat u,w,vt;
+    cv::UMat u,w,vt;
     cv::SVDecomp(A,w,u,vt,cv::SVD::MODIFY_A | cv::SVD::FULL_UV);
 
-    float a = vt.at<float>(3,0);
-    float b = vt.at<float>(3,1);
-    float c = vt.at<float>(3,2);
+    float a = vt.getMat(cv::ACCESS_FAST).at<float>(3,0);
+    float b = vt.getMat(cv::ACCESS_FAST).at<float>(3,1);
+    float c = vt.getMat(cv::ACCESS_FAST).at<float>(3,2);
 
     o = o*(1.0f/nPoints);
     const float f = 1.0f/sqrt(a*a+b*b+c*c);
@@ -548,11 +548,11 @@ void Plane::Recompute()
     // Compute XC just the first time
     if(XC.empty())
     {
-        cv::Mat Oc = -mTcw.colRange(0,3).rowRange(0,3).t()*mTcw.rowRange(0,3).col(3);
+        cv::UMat Oc = -mTcw.colRange(0,3).rowRange(0,3).t()*mTcw.rowRange(0,3).col(3);
         XC = Oc-o;
     }
 
-    if((XC.at<float>(0)*a+XC.at<float>(1)*b+XC.at<float>(2)*c)>0)
+    if((XC.getMat(cv::ACCESS_FAST).at<float>(0)*a+XC.getMat(cv::ACCESS_FAST).at<float>(1)*b+XC.getMat(cv::ACCESS_FAST).at<float>(2)*c)>0)
     {
         a=-a;
         b=-b;
@@ -565,36 +565,36 @@ void Plane::Recompute()
 
     n = (cv::Mat_<float>(3,1)<<nx,ny,nz);
 
-    cv::Mat up = (cv::Mat_<float>(3,1) << 0.0f, 1.0f, 0.0f);
+    cv::UMat up = (cv::Mat_<float>(3,1) << 0.0f, 1.0f, 0.0f);
 
-    cv::Mat v = up.cross(n);
+    cv::UMat v = up.cross(n);
     const float sa = cv::norm(v);
     const float ca = up.dot(n);
     const float ang = atan2(sa,ca);
-    Tpw = cv::Mat::eye(4,4,CV_32F);
+    Tpw = cv::UMat::eye(4,4,CV_32F);
 
 
     Tpw.rowRange(0,3).colRange(0,3) = ExpSO3(v*ang/sa)*ExpSO3(up*rang);
     o.copyTo(Tpw.col(3).rowRange(0,3));
 
-    glTpw.m[0] = Tpw.at<float>(0,0);
-    glTpw.m[1] = Tpw.at<float>(1,0);
-    glTpw.m[2] = Tpw.at<float>(2,0);
+    glTpw.m[0] = Tpw.getMat(cv::ACCESS_FAST).at<float>(0,0);
+    glTpw.m[1] = Tpw.getMat(cv::ACCESS_FAST).at<float>(1,0);
+    glTpw.m[2] = Tpw.getMat(cv::ACCESS_FAST).at<float>(2,0);
     glTpw.m[3]  = 0.0;
 
-    glTpw.m[4] = Tpw.at<float>(0,1);
-    glTpw.m[5] = Tpw.at<float>(1,1);
-    glTpw.m[6] = Tpw.at<float>(2,1);
+    glTpw.m[4] = Tpw.getMat(cv::ACCESS_FAST).at<float>(0,1);
+    glTpw.m[5] = Tpw.getMat(cv::ACCESS_FAST).at<float>(1,1);
+    glTpw.m[6] = Tpw.getMat(cv::ACCESS_FAST).at<float>(2,1);
     glTpw.m[7]  = 0.0;
 
-    glTpw.m[8] = Tpw.at<float>(0,2);
-    glTpw.m[9] = Tpw.at<float>(1,2);
-    glTpw.m[10] = Tpw.at<float>(2,2);
+    glTpw.m[8] = Tpw.getMat(cv::ACCESS_FAST).at<float>(0,2);
+    glTpw.m[9] = Tpw.getMat(cv::ACCESS_FAST).at<float>(1,2);
+    glTpw.m[10] = Tpw.getMat(cv::ACCESS_FAST).at<float>(2,2);
     glTpw.m[11]  = 0.0;
 
-    glTpw.m[12] = Tpw.at<float>(0,3);
-    glTpw.m[13] = Tpw.at<float>(1,3);
-    glTpw.m[14] = Tpw.at<float>(2,3);
+    glTpw.m[12] = Tpw.getMat(cv::ACCESS_FAST).at<float>(0,3);
+    glTpw.m[13] = Tpw.getMat(cv::ACCESS_FAST).at<float>(1,3);
+    glTpw.m[14] = Tpw.getMat(cv::ACCESS_FAST).at<float>(2,3);
     glTpw.m[15]  = 1.0;
 
 }
@@ -604,36 +604,36 @@ Plane::Plane(const float &nx, const float &ny, const float &nz, const float &ox,
     n = (cv::Mat_<float>(3,1)<<nx,ny,nz);
     o = (cv::Mat_<float>(3,1)<<ox,oy,oz);
 
-    cv::Mat up = (cv::Mat_<float>(3,1) << 0.0f, 1.0f, 0.0f);
+    cv::UMat up = (cv::Mat_<float>(3,1) << 0.0f, 1.0f, 0.0f);
 
-    cv::Mat v = up.cross(n);
+    cv::UMat v = up.cross(n);
     const float s = cv::norm(v);
     const float c = up.dot(n);
     const float a = atan2(s,c);
-    Tpw = cv::Mat::eye(4,4,CV_32F);
+    Tpw = cv::UMat::eye(4,4,CV_32F);
     const float rang = -3.14f/2+((float)rand()/RAND_MAX)*3.14f;
     cout << rang;
     Tpw.rowRange(0,3).colRange(0,3) = ExpSO3(v*a/s)*ExpSO3(up*rang);
     o.copyTo(Tpw.col(3).rowRange(0,3));
 
-    glTpw.m[0] = Tpw.at<float>(0,0);
-    glTpw.m[1] = Tpw.at<float>(1,0);
-    glTpw.m[2] = Tpw.at<float>(2,0);
+    glTpw.m[0] = Tpw.getMat(cv::ACCESS_FAST).at<float>(0,0);
+    glTpw.m[1] = Tpw.getMat(cv::ACCESS_FAST).at<float>(1,0);
+    glTpw.m[2] = Tpw.getMat(cv::ACCESS_FAST).at<float>(2,0);
     glTpw.m[3]  = 0.0;
 
-    glTpw.m[4] = Tpw.at<float>(0,1);
-    glTpw.m[5] = Tpw.at<float>(1,1);
-    glTpw.m[6] = Tpw.at<float>(2,1);
+    glTpw.m[4] = Tpw.getMat(cv::ACCESS_FAST).at<float>(0,1);
+    glTpw.m[5] = Tpw.getMat(cv::ACCESS_FAST).at<float>(1,1);
+    glTpw.m[6] = Tpw.getMat(cv::ACCESS_FAST).at<float>(2,1);
     glTpw.m[7]  = 0.0;
 
-    glTpw.m[8] = Tpw.at<float>(0,2);
-    glTpw.m[9] = Tpw.at<float>(1,2);
-    glTpw.m[10] = Tpw.at<float>(2,2);
+    glTpw.m[8] = Tpw.getMat(cv::ACCESS_FAST).at<float>(0,2);
+    glTpw.m[9] = Tpw.getMat(cv::ACCESS_FAST).at<float>(1,2);
+    glTpw.m[10] = Tpw.getMat(cv::ACCESS_FAST).at<float>(2,2);
     glTpw.m[11]  = 0.0;
 
-    glTpw.m[12] = Tpw.at<float>(0,3);
-    glTpw.m[13] = Tpw.at<float>(1,3);
-    glTpw.m[14] = Tpw.at<float>(2,3);
+    glTpw.m[12] = Tpw.getMat(cv::ACCESS_FAST).at<float>(0,3);
+    glTpw.m[13] = Tpw.getMat(cv::ACCESS_FAST).at<float>(1,3);
+    glTpw.m[14] = Tpw.getMat(cv::ACCESS_FAST).at<float>(2,3);
     glTpw.m[15]  = 1.0;
 }
 

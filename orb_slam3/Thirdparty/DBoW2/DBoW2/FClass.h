@@ -63,7 +63,7 @@ class FClass
    * @param mat (out) NxL 32F matrix
    */
   static void toMat32F(const std::vector<TDescriptor> &descriptors, 
-    cv::Mat &mat);
+    cv::UMat &mat);
 };
 
 } // namespace DBoW2

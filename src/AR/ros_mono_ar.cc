@@ -38,8 +38,8 @@ using namespace std;
 ORB_SLAM3::ViewerAR viewerAR;
 bool bRGB = true;
 
-cv::Mat K;
-cv::Mat DistCoef;
+cv::UMat K;
+cv::UMat DistCoef;
 
 
 class ImageGrabber
@@ -100,22 +100,22 @@ int main(int argc, char **argv)
 
     viewerAR.SetCameraCalibration(fx,fy,cx,cy);
 
-    K = cv::Mat::eye(3,3,CV_32F);
-    K.at<float>(0,0) = fx;
-    K.at<float>(1,1) = fy;
-    K.at<float>(0,2) = cx;
-    K.at<float>(1,2) = cy;
+    K = cv::UMat::eye(3,3,CV_32F);
+    K.getMat(cv::ACCESS_FAST).at<float>(0,0) = fx;
+    K.getMat(cv::ACCESS_FAST).at<float>(1,1) = fy;
+    K.getMat(cv::ACCESS_FAST).at<float>(0,2) = cx;
+    K.getMat(cv::ACCESS_FAST).at<float>(1,2) = cy;
 
-    DistCoef = cv::Mat::zeros(4,1,CV_32F);
-    DistCoef.at<float>(0) = fSettings["Camera.k1"];
-    DistCoef.at<float>(1) = fSettings["Camera.k2"];
-    DistCoef.at<float>(2) = fSettings["Camera.p1"];
-    DistCoef.at<float>(3) = fSettings["Camera.p2"];
+    DistCoef = cv::UMat::zeros(4,1,CV_32F);
+    DistCoef.getMat(cv::ACCESS_FAST).at<float>(0) = fSettings["Camera.k1"];
+    DistCoef.getMat(cv::ACCESS_FAST).at<float>(1) = fSettings["Camera.k2"];
+    DistCoef.getMat(cv::ACCESS_FAST).at<float>(2) = fSettings["Camera.p1"];
+    DistCoef.getMat(cv::ACCESS_FAST).at<float>(3) = fSettings["Camera.p2"];
     const float k3 = fSettings["Camera.k3"];
     if(k3!=0)
     {
-        DistCoef.resize(5);
-        DistCoef.at<float>(4) = k3;
+        DistCoef.getMat(cv::ACCESS_FAST).resize(5);
+        DistCoef.getMat(cv::ACCESS_FAST).at<float>(4) = k3;
     }
 
     thread tViewer = thread(&ORB_SLAM3::ViewerAR::Run,&viewerAR);
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
 
 void ImageGrabber::GrabImage(const sensor_msgs::ImageConstPtr& msg)
 {
-    // Copy the ros image message to cv::Mat.
+    // Copy the ros image message to cv::UMat.
     cv_bridge::CvImageConstPtr cv_ptr;
     try
     {
@@ -146,9 +146,9 @@ void ImageGrabber::GrabImage(const sensor_msgs::ImageConstPtr& msg)
         ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
     }
-    cv::Mat im = cv_ptr->image.clone();
-    cv::Mat imu;
-    cv::Mat Tcw = mpSLAM->TrackMonocular(cv_ptr->image,cv_ptr->header.stamp.toSec());
+    cv::UMat im = cv_ptr->image.clone();
+    cv::UMat imu;
+    cv::UMat Tcw = mpSLAM->TrackMonocular(cv_ptr->image,cv_ptr->header.stamp.toSec());
     int state = mpSLAM->GetTrackingState();
     vector<ORB_SLAM3::MapPoint*> vMPs = mpSLAM->GetTrackedMapPoints();
     vector<cv::KeyPoint> vKeys = mpSLAM->GetTrackedKeyPointsUn();

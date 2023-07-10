@@ -90,7 +90,7 @@ int main(int argc, char **argv)
     {
 
         // Main loop
-        cv::Mat im;
+        cv::UMat im;
         int proccIm = 0;
         for(int ni=0; ni<nImages[seq]; ni++, proccIm++)
         {

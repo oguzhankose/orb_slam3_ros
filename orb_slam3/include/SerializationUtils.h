@@ -74,7 +74,7 @@ void serializeDiagonalMatrix(Archive &ar, Eigen::DiagonalMatrix<float, dim> &D, 
 }*/
 
 template<class Archive>
-void serializeMatrix(Archive& ar, cv::Mat& mat, const unsigned int version)
+void serializeMatrix(Archive& ar, cv::UMat& mat, const unsigned int version)
 {
     int cols, rows, type;
     bool continuous;
@@ -91,26 +91,26 @@ void serializeMatrix(Archive& ar, cv::Mat& mat, const unsigned int version)
 
     if (continuous) {
         const unsigned int data_size = rows * cols * mat.elemSize();
-        ar & boost::serialization::make_array(mat.ptr(), data_size);
+        ar & boost::serialization::make_array(mat.getMat(cv::ACCESS_FAST).ptr(), data_size);
     } else {
         const unsigned int row_size = cols*mat.elemSize();
         for (int i = 0; i < rows; i++) {
-            ar & boost::serialization::make_array(mat.ptr(i), row_size);
+            ar & boost::serialization::make_array(mat.getMat(cv::ACCESS_FAST).ptr(i), row_size);
         }
     }
 }
 
 template<class Archive>
-void serializeMatrix(Archive& ar, const cv::Mat& mat, const unsigned int version)
+void serializeMatrix(Archive& ar, const cv::UMat& mat, const unsigned int version)
 {
-    cv::Mat matAux = mat;
+    cv::UMat matAux = mat;
 
     serializeMatrix(ar, matAux,version);
 
     if (Archive::is_loading::value)
     {
-        cv::Mat* ptr;
-        ptr = (cv::Mat*)( &mat );
+        cv::UMat* ptr;
+        ptr = (cv::UMat*)( &mat );
         *ptr = matAux;
     }
 }

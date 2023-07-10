@@ -25,7 +25,7 @@ public:
     ImageGrabber(ImuGrabber *pImuGb): mpImuGb(pImuGb){}
 
     void GrabImage(const sensor_msgs::ImageConstPtr& msg);
-    cv::Mat GetImage(const sensor_msgs::ImageConstPtr &img_msg);
+    cv::UMat GetImage(const sensor_msgs::ImageConstPtr &img_msg);
     void SyncWithImu();
 
     queue<sensor_msgs::ImageConstPtr> img0Buf;
@@ -103,9 +103,9 @@ void ImageGrabber::GrabImage(const sensor_msgs::ImageConstPtr &img_msg)
     mBufMutex.unlock();
 }
 
-cv::Mat ImageGrabber::GetImage(const sensor_msgs::ImageConstPtr &img_msg)
+cv::UMat ImageGrabber::GetImage(const sensor_msgs::ImageConstPtr &img_msg)
 {
-    // Copy the ros image message to cv::Mat.
+    // Copy the ros image message to cv::UMat.
     cv_bridge::CvImageConstPtr cv_ptr;
     try
     {
@@ -118,12 +118,12 @@ cv::Mat ImageGrabber::GetImage(const sensor_msgs::ImageConstPtr &img_msg)
     
     if(cv_ptr->image.type()==0)
     {
-        return cv_ptr->image.clone();
+        return cv_ptr->image.clone().getUMat(cv::ACCESS_FAST);
     }
     else
     {
         std::cout << "Error type" << std::endl;
-        return cv_ptr->image.clone();
+        return cv_ptr->image.clone().getUMat(cv::ACCESS_FAST);
     }
 }
 
@@ -133,7 +133,7 @@ void ImageGrabber::SyncWithImu()
     {
         if (!img0Buf.empty()&&!mpImuGb->imuBuf.empty())
         {
-            cv::Mat im;
+            cv::UMat im;
             double tIm = 0;
 
             tIm = img0Buf.front()->header.stamp.toSec();

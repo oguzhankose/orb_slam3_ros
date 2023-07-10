@@ -73,7 +73,7 @@ namespace ORB_SLAM3
     const int EDGE_THRESHOLD = 19;
 
 
-    static float IC_Angle(const Mat& image, Point2f pt,  const vector<int> & u_max)
+    static float IC_Angle(const UMat& image, Point2f pt,  const vector<int> & u_max)
     {
         int m_01 = 0, m_10 = 0;
 
@@ -105,7 +105,7 @@ namespace ORB_SLAM3
 
     const float factorPI = (float)(CV_PI/180.f);
     static void computeOrbDescriptor(const KeyPoint& kpt,
-                                     const Mat& img, const Point* pattern,
+                                     const UMat& img, const Point* pattern,
                                      uchar* desc)
     {
         float angle = (float)kpt.angle*factorPI;
@@ -468,7 +468,7 @@ namespace ORB_SLAM3
         }
     }
 
-    static void computeOrientation(const Mat& image, vector<KeyPoint>& keypoints, const vector<int>& umax)
+    static void computeOrientation(const UMat& image, vector<KeyPoint>& keypoints, const vector<int>& umax)
     {
         for (vector<KeyPoint>::iterator keypoint = keypoints.begin(),
                      keypointEnd = keypoints.end(); keypoint != keypointEnd; ++keypoint)
@@ -784,8 +784,13 @@ namespace ORB_SLAM3
 
         const float W = 35;
 
+        cout << "ComputeKeyPointsOctTree 0" << " nlevels: " << nlevels << endl;
+
         for (int level = 0; level < nlevels; ++level)
         {
+
+            // cout << "ComputeKeyPointsOctTree 1.0" << " mvImagePyramid[level]: " << mvImagePyramid[level].size() << endl;
+
             const int minBorderX = EDGE_THRESHOLD-3;
             const int minBorderY = minBorderX;
             const int maxBorderX = mvImagePyramid[level].cols-EDGE_THRESHOLD+3;
@@ -801,6 +806,8 @@ namespace ORB_SLAM3
             const int nRows = height/W;
             const int wCell = ceil(width/nCols);
             const int hCell = ceil(height/nRows);
+
+            // cout << "ComputeKeyPointsOctTree 1.1" << " nRows: " << nRows << endl;
 
             for(int i=0; i<nRows; i++)
             {
@@ -822,9 +829,15 @@ namespace ORB_SLAM3
                         maxX = maxBorderX;
 
                     vector<cv::KeyPoint> vKeysCell;
+            
+                    // cout << "ComputeKeyPointsOctTree 2" << endl;
 
+                    // saha
                     FAST(mvImagePyramid[level].rowRange(iniY,maxY).colRange(iniX,maxX),
                          vKeysCell,iniThFAST,true);
+
+                    // cout << "ComputeKeyPointsOctTree 3" << endl;
+                        
 
                     /*if(bRight && j <= 13){
                         FAST(mvImagePyramid[level].rowRange(iniY,maxY).colRange(iniX,maxX),
@@ -842,8 +855,12 @@ namespace ORB_SLAM3
 
                     if(vKeysCell.empty())
                     {
+                        // saha
                         FAST(mvImagePyramid[level].rowRange(iniY,maxY).colRange(iniX,maxX),
                              vKeysCell,minThFAST,true);
+
+                        // cout << "ComputeKeyPointsOctTree 4" << endl;
+                            
                         /*if(bRight && j <= 13){
                             FAST(mvImagePyramid[level].rowRange(iniY,maxY).colRange(iniX,maxX),
                                  vKeysCell,5,true);
@@ -865,11 +882,15 @@ namespace ORB_SLAM3
                             (*vit).pt.x+=j*wCell;
                             (*vit).pt.y+=i*hCell;
                             vToDistributeKeys.push_back(*vit);
+                            // cout << "ComputeKeyPointsOctTree 4.5" << endl;
+
                         }
                     }
 
                 }
             }
+
+            // cout << "ComputeKeyPointsOctTree 5" << endl;
 
             vector<KeyPoint> & keypoints = allKeypoints[level];
             keypoints.reserve(nfeatures);
@@ -878,6 +899,9 @@ namespace ORB_SLAM3
                                           minBorderY, maxBorderY,mnFeaturesPerLevel[level], level);
 
             const int scaledPatchSize = PATCH_SIZE*mvScaleFactor[level];
+
+            // cout << "ComputeKeyPointsOctTree 6" << endl;
+
 
             // Add border to coordinates and scale information
             const int nkps = keypoints.size();
@@ -893,6 +917,9 @@ namespace ORB_SLAM3
         // compute orientations
         for (int level = 0; level < nlevels; ++level)
             computeOrientation(mvImagePyramid[level], allKeypoints[level], umax);
+    
+        // cout << "ComputeKeyPointsOctTree 7" << endl;
+
     }
 
     void ORBextractor::ComputeKeyPointsOld(std::vector<std::vector<KeyPoint> > &allKeypoints)
@@ -971,7 +998,7 @@ namespace ORB_SLAM3
                     }
 
 
-                    Mat cellImage = mvImagePyramid[level].rowRange(iniY,iniY+hY).colRange(iniX,iniX+hX);
+                    cv::UMat cellImage = mvImagePyramid[level].rowRange(iniY,iniY+hY).colRange(iniX,iniX+hX);
 
                     cellKeyPoints[i][j].reserve(nfeaturesCell*5);
 
@@ -1074,10 +1101,10 @@ namespace ORB_SLAM3
             computeOrientation(mvImagePyramid[level], allKeypoints[level], umax);
     }
 
-    static void computeDescriptors(const Mat& image, vector<KeyPoint>& keypoints, Mat& descriptors,
+    static void computeDescriptors(const UMat& image, vector<KeyPoint>& keypoints, UMat& descriptors,
                                    const vector<Point>& pattern)
     {
-        descriptors = Mat::zeros((int)keypoints.size(), 32, CV_8UC1);
+        descriptors = cv::UMat::zeros((int)keypoints.size(), 32, CV_8UC1);
 
         for (size_t i = 0; i < keypoints.size(); i++)
             computeOrbDescriptor(keypoints[i], image, &pattern[0], descriptors.ptr((int)i));
@@ -1086,21 +1113,26 @@ namespace ORB_SLAM3
     int ORBextractor::operator()( InputArray _image, InputArray _mask, vector<KeyPoint>& _keypoints,
                                   OutputArray _descriptors, std::vector<int> &vLappingArea)
     {
-        //cout << "[ORBextractor]: Max Features: " << nfeatures << endl;
+        // cout << "[ORBextractor]: Max Features: " << nfeatures << endl;
         if(_image.empty())
             return -1;
 
-        Mat image = _image.getMat();
+        UMat image = _image.getMat();
         assert(image.type() == CV_8UC1 );
 
         // Pre-compute the scale pyramid
         ComputePyramid(image);
 
+        // cout << "[ORBextractor] ComputePyramid" << endl;
+
         vector < vector<KeyPoint> > allKeypoints;
         ComputeKeyPointsOctTree(allKeypoints);
         //ComputeKeyPointsOld(allKeypoints);
 
-        Mat descriptors;
+        // cout << "[ORBextractor] ComputeKeyPointsOctTree" << endl;
+
+
+        UMat descriptors;
 
         int nkeypoints = 0;
         for (int level = 0; level < nlevels; ++level)
@@ -1129,13 +1161,16 @@ namespace ORB_SLAM3
                 continue;
 
             // preprocess the resized image
-            Mat workingMat = mvImagePyramid[level].clone();
+            UMat workingMat = mvImagePyramid[level].clone();
             GaussianBlur(workingMat, workingMat, Size(7, 7), 2, 2, BORDER_REFLECT_101);
 
             // Compute the descriptors
-            //Mat desc = descriptors.rowRange(offset, offset + nkeypointsLevel);
-            Mat desc = cv::Mat(nkeypointsLevel, 32, CV_8U);
+            //UMat desc = descriptors.rowRange(offset, offset + nkeypointsLevel);
+            UMat desc = cv::UMat(nkeypointsLevel, 32, CV_8U);
             computeDescriptors(workingMat, keypoints, desc, pattern);
+
+            // cout << "[ORBextractor] computeDescriptors" << endl;
+
 
             offset += nkeypointsLevel;
 
@@ -1163,18 +1198,18 @@ namespace ORB_SLAM3
                 i++;
             }
         }
-        //cout << "[ORBextractor]: extracted " << _keypoints.size() << " KeyPoints" << endl;
+        // cout << "[ORBextractor]: extracted " << _keypoints.size() << " KeyPoints" << endl;
         return monoIndex;
     }
 
-    void ORBextractor::ComputePyramid(cv::Mat image)
+    void ORBextractor::ComputePyramid(cv::UMat image)
     {
         for (int level = 0; level < nlevels; ++level)
         {
             float scale = mvInvScaleFactor[level];
             Size sz(cvRound((float)image.cols*scale), cvRound((float)image.rows*scale));
             Size wholeSize(sz.width + EDGE_THRESHOLD*2, sz.height + EDGE_THRESHOLD*2);
-            Mat temp(wholeSize, image.type()), masktemp;
+            cv::UMat temp(wholeSize, image.type()), masktemp;
             mvImagePyramid[level] = temp(Rect(EDGE_THRESHOLD, EDGE_THRESHOLD, sz.width, sz.height));
 
             // Compute the resized image

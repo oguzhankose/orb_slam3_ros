@@ -195,7 +195,7 @@ int main(int argc, char **argv) {
     vector<double> v_accel_timestamp_sync;
     vector<rs2_vector> v_accel_data_sync;
 
-    cv::Mat imCV, depthCV;
+    cv::UMat imCV, depthCV;
     int width_img, height_img;
     double timestamp_image = -1.0;
     bool image_ready = false;
@@ -256,10 +256,10 @@ int main(int argc, char **argv) {
             }
 
 
-            imCV = cv::Mat(cv::Size(width_img, height_img), CV_8UC3, (void*)(color_frame.get_data()), cv::Mat::AUTO_STEP);
-            depthCV = cv::Mat(cv::Size(width_img, height_img), CV_16U, (void*)(depth_frame.get_data()), cv::Mat::AUTO_STEP);
+            imCV = cv::UMat(cv::Size(width_img, height_img), CV_8UC3, (void*)(color_frame.get_data()), cv::UMat::AUTO_STEP);
+            depthCV = cv::UMat(cv::Size(width_img, height_img), CV_16U, (void*)(depth_frame.get_data()), cv::UMat::AUTO_STEP);
 
-            cv::Mat depthCV_8U;
+            cv::UMat depthCV_8U;
             depthCV.convertTo(depthCV_8U,CV_8U,0.01);
             cv::imshow("depth image", depthCV_8U);*/
 
@@ -310,7 +310,7 @@ int main(int argc, char **argv) {
     float imageScale = SLAM.GetImageScale();
 
     double timestamp;
-    cv::Mat im, depth;
+    cv::UMat im, depth;
 
     double t_resize = 0.f;
     double t_track = 0.f;
@@ -349,10 +349,10 @@ int main(int argc, char **argv) {
         rs2::video_frame color_frame = processed.first(align_to);
         rs2::depth_frame depth_frame = processed.get_depth_frame();
 
-        im = cv::Mat(cv::Size(width_img, height_img), CV_8UC3, (void*)(color_frame.get_data()), cv::Mat::AUTO_STEP);
-        depth = cv::Mat(cv::Size(width_img, height_img), CV_16U, (void*)(depth_frame.get_data()), cv::Mat::AUTO_STEP);
+        im = cv::UMat(cv::Size(width_img, height_img), CV_8UC3, (void*)(color_frame.get_data()), cv::UMat::AUTO_STEP);
+        depth = cv::UMat(cv::Size(width_img, height_img), CV_16U, (void*)(depth_frame.get_data()), cv::UMat::AUTO_STEP);
 
-        /*cv::Mat depthCV_8U;
+        /*cv::UMat depthCV_8U;
         depthCV.convertTo(depthCV_8U,CV_8U,0.01);
         cv::imshow("depth image", depthCV_8U);*/
 

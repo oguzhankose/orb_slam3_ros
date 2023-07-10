@@ -143,7 +143,7 @@ public:
 
     void ComputeDistinctiveDescriptors();
 
-    cv::Mat GetDescriptor();
+    cv::UMat GetDescriptor();
 
     void UpdateNormalAndDepth();
 
@@ -222,7 +222,7 @@ protected:
      Eigen::Vector3f mNormalVector;
 
      // Best descriptor to fast matching
-     cv::Mat mDescriptor;
+     cv::UMat mDescriptor;
 
      // Reference KeyFrame
      KeyFrame* mpRefKF;

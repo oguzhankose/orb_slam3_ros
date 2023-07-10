@@ -30,13 +30,13 @@ namespace ORB_SLAM3
 FrameDrawer::FrameDrawer(Atlas* pAtlas):both(false),mpAtlas(pAtlas)
 {
     mState=Tracking::SYSTEM_NOT_READY;
-    mIm = cv::Mat(480,640,CV_8UC3, cv::Scalar(0,0,0));
-    mImRight = cv::Mat(480,640,CV_8UC3, cv::Scalar(0,0,0));
+    mIm = cv::UMat(480,640,CV_8UC3, cv::Scalar(0,0,0));
+    mImRight = cv::UMat(480,640,CV_8UC3, cv::Scalar(0,0,0));
 }
 
-cv::Mat FrameDrawer::DrawFrame(float imageScale)
+cv::UMat FrameDrawer::DrawFrame(float imageScale)
 {
-    cv::Mat im;
+    cv::UMat im;
     vector<cv::KeyPoint> vIniKeys; // Initialization: KeyPoints in reference frame
     vector<int> vMatches; // Initialization: correspondeces with reference keypoints
     vector<cv::KeyPoint> vCurrentKeys; // KeyPoints in current frame
@@ -195,15 +195,15 @@ cv::Mat FrameDrawer::DrawFrame(float imageScale)
         }
     }
 
-    cv::Mat imWithInfo;
+    cv::UMat imWithInfo;
     DrawTextInfo(im,state, imWithInfo);
 
     return imWithInfo;
 }
 
-cv::Mat FrameDrawer::DrawRightFrame(float imageScale)
+cv::UMat FrameDrawer::DrawRightFrame(float imageScale)
 {
-    cv::Mat im;
+    cv::UMat im;
     vector<cv::KeyPoint> vIniKeys; // Initialization: KeyPoints in reference frame
     vector<int> vMatches; // Initialization: correspondeces with reference keypoints
     vector<cv::KeyPoint> vCurrentKeys; // KeyPoints in current frame
@@ -320,7 +320,7 @@ cv::Mat FrameDrawer::DrawRightFrame(float imageScale)
         }
     }
 
-    cv::Mat imWithInfo;
+    cv::UMat imWithInfo;
     DrawTextInfo(im,state, imWithInfo);
 
     return imWithInfo;
@@ -328,7 +328,7 @@ cv::Mat FrameDrawer::DrawRightFrame(float imageScale)
 
 
 
-void FrameDrawer::DrawTextInfo(cv::Mat &im, int nState, cv::Mat &imText)
+void FrameDrawer::DrawTextInfo(cv::UMat &im, int nState, cv::UMat &imText)
 {
     stringstream s;
     if(nState==Tracking::NO_IMAGES_YET)
@@ -360,9 +360,9 @@ void FrameDrawer::DrawTextInfo(cv::Mat &im, int nState, cv::Mat &imText)
     int baseline=0;
     cv::Size textSize = cv::getTextSize(s.str(),cv::FONT_HERSHEY_PLAIN,1,1,&baseline);
 
-    imText = cv::Mat(im.rows+textSize.height+10,im.cols,im.type());
+    imText = cv::UMat(im.rows+textSize.height+10,im.cols,im.type());
     im.copyTo(imText.rowRange(0,im.rows).colRange(0,im.cols));
-    imText.rowRange(im.rows,imText.rows) = cv::Mat::zeros(textSize.height+10,im.cols,im.type());
+    imText.rowRange(im.rows,imText.rows) = cv::UMat::zeros(textSize.height+10,im.cols,im.type());
     cv::putText(imText,s.str(),cv::Point(5,imText.rows-5),cv::FONT_HERSHEY_PLAIN,1,cv::Scalar(255,255,255),1,8);
 
 }

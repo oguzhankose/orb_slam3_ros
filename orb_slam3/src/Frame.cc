@@ -98,7 +98,7 @@ Frame::Frame(const Frame &frame)
 }
 
 
-Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeStamp, ORBextractor* extractorLeft, ORBextractor* extractorRight, ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth, GeometricCamera* pCamera, Frame* pPrevF, const IMU::Calib &ImuCalib)
+Frame::Frame(const cv::UMat &imLeft, const cv::UMat &imRight, const double &timeStamp, ORBextractor* extractorLeft, ORBextractor* extractorRight, ORBVocabulary* voc, cv::UMat &K, cv::UMat &distCoef, const float &bf, const float &thDepth, GeometricCamera* pCamera, Frame* pPrevF, const IMU::Calib &ImuCalib)
     :mpcpi(NULL), mpORBvocabulary(voc),mpORBextractorLeft(extractorLeft),mpORBextractorRight(extractorRight), mTimeStamp(timeStamp), mK(K.clone()), mK_(Converter::toMatrix3f(K)), mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth),
      mImuCalib(ImuCalib), mpImuPreintegrated(NULL), mpPrevFrame(pPrevF),mpImuPreintegratedFrame(NULL), mpReferenceKF(static_cast<KeyFrame*>(NULL)), mbIsSet(false), mbImuPreintegrated(false),
      mpCamera(pCamera) ,mpCamera2(nullptr), mbHasPose(false), mbHasVelocity(false)
@@ -161,10 +161,10 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
 
 
 
-        fx = K.at<float>(0,0);
-        fy = K.at<float>(1,1);
-        cx = K.at<float>(0,2);
-        cy = K.at<float>(1,2);
+        fx = K.getMat(cv::ACCESS_FAST).at<float>(0,0);
+        fy = K.getMat(cv::ACCESS_FAST).at<float>(1,1);
+        cx = K.getMat(cv::ACCESS_FAST).at<float>(0,2);
+        cy = K.getMat(cv::ACCESS_FAST).at<float>(1,2);
         invfx = 1.0f/fx;
         invfy = 1.0f/fy;
 
@@ -197,7 +197,7 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
     AssignFeaturesToGrid();
 }
 
-Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth, GeometricCamera* pCamera,Frame* pPrevF, const IMU::Calib &ImuCalib)
+Frame::Frame(const cv::UMat &imGray, const cv::UMat &imDepth, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::UMat &K, cv::UMat &distCoef, const float &bf, const float &thDepth, GeometricCamera* pCamera,Frame* pPrevF, const IMU::Calib &ImuCalib)
     :mpcpi(NULL),mpORBvocabulary(voc),mpORBextractorLeft(extractor),mpORBextractorRight(static_cast<ORBextractor*>(NULL)),
      mTimeStamp(timeStamp), mK(K.clone()), mK_(Converter::toMatrix3f(K)),mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth),
      mImuCalib(ImuCalib), mpImuPreintegrated(NULL), mpPrevFrame(pPrevF), mpImuPreintegratedFrame(NULL), mpReferenceKF(static_cast<KeyFrame*>(NULL)), mbIsSet(false), mbImuPreintegrated(false),
@@ -251,10 +251,10 @@ Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeSt
         mfGridElementWidthInv=static_cast<float>(FRAME_GRID_COLS)/static_cast<float>(mnMaxX-mnMinX);
         mfGridElementHeightInv=static_cast<float>(FRAME_GRID_ROWS)/static_cast<float>(mnMaxY-mnMinY);
 
-        fx = K.at<float>(0,0);
-        fy = K.at<float>(1,1);
-        cx = K.at<float>(0,2);
-        cy = K.at<float>(1,2);
+        fx = K.getMat(cv::ACCESS_FAST).at<float>(0,0);
+        fy = K.getMat(cv::ACCESS_FAST).at<float>(1,1);
+        cx = K.getMat(cv::ACCESS_FAST).at<float>(0,2);
+        cy = K.getMat(cv::ACCESS_FAST).at<float>(1,2);
         invfx = 1.0f/fx;
         invfy = 1.0f/fy;
 
@@ -286,7 +286,7 @@ Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeSt
 }
 
 
-Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, GeometricCamera* pCamera, cv::Mat &distCoef, const float &bf, const float &thDepth, Frame* pPrevF, const IMU::Calib &ImuCalib)
+Frame::Frame(const cv::UMat &imGray, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, GeometricCamera* pCamera, cv::UMat &distCoef, const float &bf, const float &thDepth, Frame* pPrevF, const IMU::Calib &ImuCalib)
     :mpcpi(NULL),mpORBvocabulary(voc),mpORBextractorLeft(extractor),mpORBextractorRight(static_cast<ORBextractor*>(NULL)),
      mTimeStamp(timeStamp), mK(static_cast<Pinhole*>(pCamera)->toK()), mK_(static_cast<Pinhole*>(pCamera)->toK_()), mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth),
      mImuCalib(ImuCalib), mpImuPreintegrated(NULL),mpPrevFrame(pPrevF),mpImuPreintegratedFrame(NULL), mpReferenceKF(static_cast<KeyFrame*>(NULL)), mbIsSet(false), mbImuPreintegrated(false), mpCamera(pCamera),
@@ -342,10 +342,10 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extra
         mfGridElementWidthInv=static_cast<float>(FRAME_GRID_COLS)/static_cast<float>(mnMaxX-mnMinX);
         mfGridElementHeightInv=static_cast<float>(FRAME_GRID_ROWS)/static_cast<float>(mnMaxY-mnMinY);
 
-        fx = static_cast<Pinhole*>(mpCamera)->toK().at<float>(0,0);
-        fy = static_cast<Pinhole*>(mpCamera)->toK().at<float>(1,1);
-        cx = static_cast<Pinhole*>(mpCamera)->toK().at<float>(0,2);
-        cy = static_cast<Pinhole*>(mpCamera)->toK().at<float>(1,2);
+        fx = static_cast<Pinhole*>(mpCamera)->toK().getMat(cv::ACCESS_FAST).at<float>(0,0);
+        fy = static_cast<Pinhole*>(mpCamera)->toK().getMat(cv::ACCESS_FAST).at<float>(1,1);
+        cx = static_cast<Pinhole*>(mpCamera)->toK().getMat(cv::ACCESS_FAST).at<float>(0,2);
+        cy = static_cast<Pinhole*>(mpCamera)->toK().getMat(cv::ACCESS_FAST).at<float>(1,2);
         invfx = 1.0f/fx;
         invfy = 1.0f/fy;
 
@@ -415,13 +415,13 @@ void Frame::AssignFeaturesToGrid()
     }
 }
 
-void Frame::ExtractORB(int flag, const cv::Mat &im, const int x0, const int x1)
+void Frame::ExtractORB(int flag, const cv::UMat &im, const int x0, const int x1)
 {
     vector<int> vLapping = {x0,x1};
     if(flag==0)
-        monoLeft = (*mpORBextractorLeft)(im,cv::Mat(),mvKeys,mDescriptors,vLapping);
+        monoLeft = (*mpORBextractorLeft)(im,cv::UMat(),mvKeys,mDescriptors,vLapping);
     else
-        monoRight = (*mpORBextractorRight)(im,cv::Mat(),mvKeysRight,mDescriptorsRight,vLapping);
+        monoRight = (*mpORBextractorRight)(im,cv::UMat(),mvKeysRight,mDescriptorsRight,vLapping);
 }
 
 bool Frame::isSet() const {
@@ -619,14 +619,14 @@ bool Frame::ProjectPointDistort(MapPoint* pMP, cv::Point2f &kp, float &u, float 
     float x = (u - cx) * invfx;
     float y = (v - cy) * invfy;
     float r2 = x * x + y * y;
-    float k1 = mDistCoef.at<float>(0);
-    float k2 = mDistCoef.at<float>(1);
-    float p1 = mDistCoef.at<float>(2);
-    float p2 = mDistCoef.at<float>(3);
+    float k1 = mDistCoef.getMat(cv::ACCESS_FAST).at<float>(0);
+    float k2 = mDistCoef.getMat(cv::ACCESS_FAST).at<float>(1);
+    float p1 = mDistCoef.getMat(cv::ACCESS_FAST).at<float>(2);
+    float p2 = mDistCoef.getMat(cv::ACCESS_FAST).at<float>(3);
     float k3 = 0;
     if(mDistCoef.total() == 5)
     {
-        k3 = mDistCoef.at<float>(4);
+        k3 = mDistCoef.getMat(cv::ACCESS_FAST).at<float>(4);
     }
 
     // Radial distorsion
@@ -739,31 +739,31 @@ void Frame::ComputeBoW()
 {
     if(mBowVec.empty())
     {
-        vector<cv::Mat> vCurrentDesc = Converter::toDescriptorVector(mDescriptors);
+        vector<cv::UMat> vCurrentDesc = Converter::toDescriptorVector(mDescriptors);
         mpORBvocabulary->transform(vCurrentDesc,mBowVec,mFeatVec,4);
     }
 }
 
 void Frame::UndistortKeyPoints()
 {
-    if(mDistCoef.at<float>(0)==0.0)
+    if(mDistCoef.getMat(cv::ACCESS_FAST).at<float>(0)==0.0)
     {
         mvKeysUn=mvKeys;
         return;
     }
 
     // Fill matrix with points
-    cv::Mat mat(N,2,CV_32F);
+    cv::UMat mat(N,2,CV_32F);
 
     for(int i=0; i<N; i++)
     {
-        mat.at<float>(i,0)=mvKeys[i].pt.x;
-        mat.at<float>(i,1)=mvKeys[i].pt.y;
+        mat.getMat(cv::ACCESS_FAST).at<float>(i,0)=mvKeys[i].pt.x;
+        mat.getMat(cv::ACCESS_FAST).at<float>(i,1)=mvKeys[i].pt.y;
     }
 
     // Undistort points
     mat=mat.reshape(2);
-    cv::undistortPoints(mat,mat, static_cast<Pinhole*>(mpCamera)->toK(),mDistCoef,cv::Mat(),mK);
+    cv::undistortPoints(mat,mat, static_cast<Pinhole*>(mpCamera)->toK(),mDistCoef,cv::UMat(),mK);
     mat=mat.reshape(1);
 
 
@@ -772,32 +772,32 @@ void Frame::UndistortKeyPoints()
     for(int i=0; i<N; i++)
     {
         cv::KeyPoint kp = mvKeys[i];
-        kp.pt.x=mat.at<float>(i,0);
-        kp.pt.y=mat.at<float>(i,1);
+        kp.pt.x=mat.getMat(cv::ACCESS_FAST).at<float>(i,0);
+        kp.pt.y=mat.getMat(cv::ACCESS_FAST).at<float>(i,1);
         mvKeysUn[i]=kp;
     }
 
 }
 
-void Frame::ComputeImageBounds(const cv::Mat &imLeft)
+void Frame::ComputeImageBounds(const cv::UMat &imLeft)
 {
-    if(mDistCoef.at<float>(0)!=0.0)
+    if(mDistCoef.getMat(cv::ACCESS_FAST).at<float>(0)!=0.0)
     {
-        cv::Mat mat(4,2,CV_32F);
-        mat.at<float>(0,0)=0.0; mat.at<float>(0,1)=0.0;
-        mat.at<float>(1,0)=imLeft.cols; mat.at<float>(1,1)=0.0;
-        mat.at<float>(2,0)=0.0; mat.at<float>(2,1)=imLeft.rows;
-        mat.at<float>(3,0)=imLeft.cols; mat.at<float>(3,1)=imLeft.rows;
+        cv::UMat mat(4,2,CV_32F);
+        mat.getMat(cv::ACCESS_FAST).at<float>(0,0)=0.0; mat.getMat(cv::ACCESS_FAST).at<float>(0,1)=0.0;
+        mat.getMat(cv::ACCESS_FAST).at<float>(1,0)=imLeft.cols; mat.getMat(cv::ACCESS_FAST).at<float>(1,1)=0.0;
+        mat.getMat(cv::ACCESS_FAST).at<float>(2,0)=0.0; mat.getMat(cv::ACCESS_FAST).at<float>(2,1)=imLeft.rows;
+        mat.getMat(cv::ACCESS_FAST).at<float>(3,0)=imLeft.cols; mat.getMat(cv::ACCESS_FAST).at<float>(3,1)=imLeft.rows;
 
         mat=mat.reshape(2);
-        cv::undistortPoints(mat,mat,static_cast<Pinhole*>(mpCamera)->toK(),mDistCoef,cv::Mat(),mK);
+        cv::undistortPoints(mat,mat,static_cast<Pinhole*>(mpCamera)->toK(),mDistCoef,cv::UMat(),mK);
         mat=mat.reshape(1);
 
         // Undistort corners
-        mnMinX = min(mat.at<float>(0,0),mat.at<float>(2,0));
-        mnMaxX = max(mat.at<float>(1,0),mat.at<float>(3,0));
-        mnMinY = min(mat.at<float>(0,1),mat.at<float>(1,1));
-        mnMaxY = max(mat.at<float>(2,1),mat.at<float>(3,1));
+        mnMinX = min(mat.getMat(cv::ACCESS_FAST).at<float>(0,0),mat.getMat(cv::ACCESS_FAST).at<float>(2,0));
+        mnMaxX = max(mat.getMat(cv::ACCESS_FAST).at<float>(1,0),mat.getMat(cv::ACCESS_FAST).at<float>(3,0));
+        mnMinY = min(mat.getMat(cv::ACCESS_FAST).at<float>(0,1),mat.getMat(cv::ACCESS_FAST).at<float>(1,1));
+        mnMaxY = max(mat.getMat(cv::ACCESS_FAST).at<float>(2,1),mat.getMat(cv::ACCESS_FAST).at<float>(3,1));
     }
     else
     {
@@ -867,7 +867,7 @@ void Frame::ComputeStereoMatches()
         int bestDist = ORBmatcher::TH_HIGH;
         size_t bestIdxR = 0;
 
-        const cv::Mat &dL = mDescriptors.row(iL);
+        const cv::UMat &dL = mDescriptors.row(iL);
 
         // Compare descriptor to right keypoints
         for(size_t iC=0; iC<vCandidates.size(); iC++)
@@ -882,7 +882,7 @@ void Frame::ComputeStereoMatches()
 
             if(uR>=minU && uR<=maxU)
             {
-                const cv::Mat &dR = mDescriptorsRight.row(iR);
+                const cv::UMat &dR = mDescriptorsRight.row(iR);
                 const int dist = ORBmatcher::DescriptorDistance(dL,dR);
 
                 if(dist<bestDist)
@@ -905,7 +905,7 @@ void Frame::ComputeStereoMatches()
 
             // sliding window search
             const int w = 5;
-            cv::Mat IL = mpORBextractorLeft->mvImagePyramid[kpL.octave].rowRange(scaledvL-w,scaledvL+w+1).colRange(scaleduL-w,scaleduL+w+1);
+            cv::UMat IL = mpORBextractorLeft->mvImagePyramid[kpL.octave].rowRange(scaledvL-w,scaledvL+w+1).colRange(scaleduL-w,scaleduL+w+1);
 
             int bestDist = INT_MAX;
             int bestincR = 0;
@@ -920,7 +920,7 @@ void Frame::ComputeStereoMatches()
 
             for(int incR=-L; incR<=+L; incR++)
             {
-                cv::Mat IR = mpORBextractorRight->mvImagePyramid[kpL.octave].rowRange(scaledvL-w,scaledvL+w+1).colRange(scaleduR0+incR-w,scaleduR0+incR+w+1);
+                cv::UMat IR = mpORBextractorRight->mvImagePyramid[kpL.octave].rowRange(scaledvL-w,scaledvL+w+1).colRange(scaleduR0+incR-w,scaleduR0+incR+w+1);
 
                 float dist = cv::norm(IL,IR,cv::NORM_L1);
                 if(dist<bestDist)
@@ -981,7 +981,7 @@ void Frame::ComputeStereoMatches()
 }
 
 
-void Frame::ComputeStereoFromRGBD(const cv::Mat &imDepth)
+void Frame::ComputeStereoFromRGBD(const cv::UMat &imDepth)
 {
     mvuRight = vector<float>(N,-1);
     mvDepth = vector<float>(N,-1);
@@ -994,7 +994,7 @@ void Frame::ComputeStereoFromRGBD(const cv::Mat &imDepth)
         const float &v = kp.pt.y;
         const float &u = kp.pt.x;
 
-        const float d = imDepth.at<float>(v,u);
+        const float d = imDepth.getMat(cv::ACCESS_FAST).at<float>(v,u);
 
         if(d>0)
         {
@@ -1031,7 +1031,7 @@ void Frame::setIntegrated()
     mbImuPreintegrated = true;
 }
 
-Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeStamp, ORBextractor* extractorLeft, ORBextractor* extractorRight, ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth, GeometricCamera* pCamera, GeometricCamera* pCamera2, Sophus::SE3f& Tlr,Frame* pPrevF, const IMU::Calib &ImuCalib)
+Frame::Frame(const cv::UMat &imLeft, const cv::UMat &imRight, const double &timeStamp, ORBextractor* extractorLeft, ORBextractor* extractorRight, ORBVocabulary* voc, cv::UMat &K, cv::UMat &distCoef, const float &bf, const float &thDepth, GeometricCamera* pCamera, GeometricCamera* pCamera2, Sophus::SE3f& Tlr,Frame* pPrevF, const IMU::Calib &ImuCalib)
         :mpcpi(NULL), mpORBvocabulary(voc),mpORBextractorLeft(extractorLeft),mpORBextractorRight(extractorRight), mTimeStamp(timeStamp), mK(K.clone()), mK_(Converter::toMatrix3f(K)),  mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth),
          mImuCalib(ImuCalib), mpImuPreintegrated(NULL), mpPrevFrame(pPrevF),mpImuPreintegratedFrame(NULL), mpReferenceKF(static_cast<KeyFrame*>(NULL)), mbImuPreintegrated(false), mpCamera(pCamera), mpCamera2(pCamera2),
          mbHasPose(false), mbHasVelocity(false)
@@ -1081,10 +1081,10 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
         mfGridElementWidthInv=static_cast<float>(FRAME_GRID_COLS)/(mnMaxX-mnMinX);
         mfGridElementHeightInv=static_cast<float>(FRAME_GRID_ROWS)/(mnMaxY-mnMinY);
 
-        fx = K.at<float>(0,0);
-        fy = K.at<float>(1,1);
-        cx = K.at<float>(0,2);
-        cy = K.at<float>(1,2);
+        fx = K.getMat(cv::ACCESS_FAST).at<float>(0,0);
+        fy = K.getMat(cv::ACCESS_FAST).at<float>(1,1);
+        cx = K.getMat(cv::ACCESS_FAST).at<float>(0,2);
+        cy = K.getMat(cv::ACCESS_FAST).at<float>(1,2);
         invfx = 1.0f/fx;
         invfy = 1.0f/fy;
 
@@ -1110,11 +1110,13 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
 #endif
 
     //Put all descriptors in the same matrix
-    cv::vconcat(mDescriptors,mDescriptorsRight,mDescriptors);
+    cv::UMat temp_mDescriptors;
+    cv::vconcat(mDescriptors,mDescriptorsRight,temp_mDescriptors);
+    temp_mDescriptors.copyTo(mDescriptors);
 
     mvpMapPoints = vector<MapPoint*>(N,static_cast<MapPoint*>(nullptr));
     mvbOutlier = vector<bool>(N,false);
-
+   
     AssignFeaturesToGrid();
 
     mpMutexImu = new std::mutex();
@@ -1128,8 +1130,8 @@ void Frame::ComputeStereoFishEyeMatches() {
     vector<cv::KeyPoint> stereoLeft(mvKeys.begin() + monoLeft, mvKeys.end());
     vector<cv::KeyPoint> stereoRight(mvKeysRight.begin() + monoRight, mvKeysRight.end());
 
-    cv::Mat stereoDescLeft = mDescriptors.rowRange(monoLeft, mDescriptors.rows);
-    cv::Mat stereoDescRight = mDescriptorsRight.rowRange(monoRight, mDescriptorsRight.rows);
+    cv::UMat stereoDescLeft = mDescriptors.rowRange(monoLeft, mDescriptors.rows);
+    cv::UMat stereoDescRight = mDescriptorsRight.rowRange(monoRight, mDescriptorsRight.rows);
 
     mvLeftToRightMatch = vector<int>(Nleft,-1);
     mvRightToLeftMatch = vector<int>(Nright,-1);

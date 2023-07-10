@@ -108,7 +108,7 @@ int main(int argc, char **argv)
     vector<double> v_accel_timestamp_sync;
     vector<rs2_vector> v_accel_data_sync;
 
-    cv::Mat imCV,imCV_right;
+    cv::UMat imCV,imCV_right;
     int width_img = 848, height_img = 800;
     double timestamp_image = -1.0;
     bool image_ready = false;
@@ -129,8 +129,8 @@ int main(int argc, char **argv)
 
             rs2::video_frame color_frame = fs.get_fisheye_frame(1);
             rs2::video_frame color_frame_right = fs.get_fisheye_frame(2);
-            imCV = cv::Mat(cv::Size(width_img, height_img), CV_8U, (void*)(color_frame.get_data()), cv::Mat::AUTO_STEP);
-            imCV_right = cv::Mat(cv::Size(width_img, height_img), CV_8U, (void*)(color_frame_right.get_data()), cv::Mat::AUTO_STEP);
+            imCV = cv::UMat(cv::Size(width_img, height_img), CV_8U, (void*)(color_frame.get_data()), cv::UMat::AUTO_STEP);
+            imCV_right = cv::UMat(cv::Size(width_img, height_img), CV_8U, (void*)(color_frame_right.get_data()), cv::UMat::AUTO_STEP);
 
             timestamp_image = new_timestamp_image;
             double test = fs.get_timestamp()*1e-3;
@@ -197,7 +197,7 @@ int main(int argc, char **argv)
     vector<ORB_SLAM3::IMU::Point> vImuMeas;
 
     double timestamp;
-    cv::Mat im,imright;
+    cv::UMat im,imright;
 
     // Clear IMU vectors
     v_gyro_data.clear();
@@ -208,7 +208,7 @@ int main(int argc, char **argv)
     double t_resize = 0.f;
     double t_track = 0.f;
 
-    cv::Mat im_left, im_right;
+    cv::UMat im_left, im_right;
 
     while (!SLAM.isShutDown()){
         std::vector<rs2_vector> vGyro;

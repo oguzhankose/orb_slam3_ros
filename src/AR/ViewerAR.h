@@ -32,24 +32,24 @@ namespace ORB_SLAM3
 class Plane
 {
 public:
-    Plane(const std::vector<MapPoint*> &vMPs, const cv::Mat &Tcw);
+    Plane(const std::vector<MapPoint*> &vMPs, const cv::UMat &Tcw);
     Plane(const float &nx, const float &ny, const float &nz, const float &ox, const float &oy, const float &oz);
 
     void Recompute();
 
     //normal
-    cv::Mat n;
+    cv::UMat n;
     //origin
-    cv::Mat o;
+    cv::UMat o;
     //arbitrary orientation along normal
     float rang;
     //transformation from world to the plane
-    cv::Mat Tpw;
+    cv::UMat Tpw;
     pangolin::OpenGlMatrix glTpw;
     //MapPoints that define the plane
     std::vector<MapPoint*> mvMPs;
     //camera pose when the plane was first observed (to compute normal direction)
-    cv::Mat mTcw, XC;
+    cv::UMat mTcw, XC;
 };
 
 class ViewerAR
@@ -73,10 +73,10 @@ public:
         fx = fx_; fy = fy_; cx = cx_; cy = cy_;
     }
 
-    void SetImagePose(const cv::Mat &im, const cv::Mat &Tcw, const int &status,
+    void SetImagePose(const cv::UMat &im, const cv::UMat &Tcw, const int &status,
                       const std::vector<cv::KeyPoint> &vKeys, const std::vector<MapPoint*> &vMPs);
 
-    void GetImagePose(cv::Mat &im, cv::Mat &Tcw, int &status,
+    void GetImagePose(cv::UMat &im, cv::UMat &Tcw, int &status,
                       std::vector<cv::KeyPoint> &vKeys,  std::vector<MapPoint*> &vMPs);
 
 private:
@@ -84,16 +84,16 @@ private:
     //SLAM
     ORB_SLAM3::System* mpSystem;
 
-    void PrintStatus(const int &status, const bool &bLocMode, cv::Mat &im);
-    void AddTextToImage(const std::string &s, cv::Mat &im, const int r=0, const int g=0, const int b=0);
-    void LoadCameraPose(const cv::Mat &Tcw);
-    void DrawImageTexture(pangolin::GlTexture &imageTexture, cv::Mat &im);
+    void PrintStatus(const int &status, const bool &bLocMode, cv::UMat &im);
+    void AddTextToImage(const std::string &s, cv::UMat &im, const int r=0, const int g=0, const int b=0);
+    void LoadCameraPose(const cv::UMat &Tcw);
+    void DrawImageTexture(pangolin::GlTexture &imageTexture, cv::UMat &im);
     void DrawCube(const float &size, const float x=0, const float y=0, const float z=0);
     void DrawPlane(int ndivs, float ndivsize);
     void DrawPlane(Plane* pPlane, int ndivs, float ndivsize);
-    void DrawTrackedPoints(const std::vector<cv::KeyPoint> &vKeys, const std::vector<MapPoint*> &vMPs, cv::Mat &im);
+    void DrawTrackedPoints(const std::vector<cv::KeyPoint> &vKeys, const std::vector<MapPoint*> &vMPs, cv::UMat &im);
 
-    Plane* DetectPlane(const cv::Mat Tcw, const std::vector<MapPoint*> &vMPs, const int iterations=50);
+    Plane* DetectPlane(const cv::UMat Tcw, const std::vector<MapPoint*> &vMPs, const int iterations=50);
 
     // frame rate
     float mFPS, mT;
@@ -101,8 +101,8 @@ private:
 
     // Last processed image and computed pose by the SLAM
     std::mutex mMutexPoseImage;
-    cv::Mat mTcw;
-    cv::Mat mImage;
+    cv::UMat mTcw;
+    cv::UMat mImage;
     int mStatus;
     std::vector<cv::KeyPoint> mvKeys;
     std::vector<MapPoint*> mvMPs;

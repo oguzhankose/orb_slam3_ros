@@ -50,7 +50,7 @@ void setup_publishers(ros::NodeHandle&, image_transport::ImageTransport&, std::s
 void publish_topics(ros::Time, Eigen::Vector3f = Eigen::Vector3f::Zero());
 
 void publish_camera_pose(Sophus::SE3f, ros::Time);
-void publish_tracking_img(cv::Mat, ros::Time);
+void publish_tracking_img(cv::UMat, ros::Time);
 void publish_tracked_points(std::vector<ORB_SLAM3::MapPoint*>, ros::Time);
 void publish_all_points(std::vector<ORB_SLAM3::MapPoint*>, ros::Time);
 void publish_tf_transform(Sophus::SE3f, string, string, ros::Time);
@@ -62,6 +62,6 @@ void publish_keyframes_with_camera_pose(std::vector<ORB_SLAM3::PoseWithId>, ros:
 bool save_map_srv(orb_slam3_ros::SaveMap::Request&, orb_slam3_ros::SaveMap::Response&);
 bool save_traj_srv(orb_slam3_ros::SaveMap::Request&, orb_slam3_ros::SaveMap::Response&);
 
-cv::Mat SE3f_to_cvMat(Sophus::SE3f);
+cv::UMat SE3f_to_cvMat(Sophus::SE3f);
 tf::Transform SE3f_to_tfTransform(Sophus::SE3f);
 sensor_msgs::PointCloud2 mappoint_to_pointcloud(std::vector<ORB_SLAM3::MapPoint*>, ros::Time);

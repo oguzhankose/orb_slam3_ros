@@ -43,8 +43,8 @@ void FORB::meanValue(const std::vector<FORB::pDescriptor> &descriptors,
     
     for(size_t i = 0; i < descriptors.size(); ++i)
     {
-      const cv::Mat &d = *descriptors[i];
-      const unsigned char *p = d.ptr<unsigned char>();
+      const cv::UMat &d = *descriptors[i];
+      const unsigned char *p = d.getMat(cv::ACCESS_FAST).ptr<unsigned char>();
       
       for(int j = 0; j < d.cols; ++j, ++p)
       {
@@ -59,8 +59,8 @@ void FORB::meanValue(const std::vector<FORB::pDescriptor> &descriptors,
       }
     }
     
-    mean = cv::Mat::zeros(1, FORB::L, CV_8U);
-    unsigned char *p = mean.ptr<unsigned char>();
+    mean = cv::UMat::zeros(1, FORB::L, CV_8U);
+    unsigned char *p = mean.getMat(cv::ACCESS_FAST).ptr<unsigned char>();
     
     const int N2 = (int)descriptors.size() / 2 + descriptors.size() % 2;
     for(size_t i = 0; i < sum.size(); ++i)
@@ -84,8 +84,8 @@ int FORB::distance(const FORB::TDescriptor &a,
   // Bit set count operation from
   // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
 
-  const int *pa = a.ptr<int32_t>();
-  const int *pb = b.ptr<int32_t>();
+  const int *pa = a.getMat(cv::ACCESS_FAST).ptr<int32_t>();
+  const int *pb = b.getMat(cv::ACCESS_FAST).ptr<int32_t>();
 
   int dist=0;
 
@@ -105,7 +105,7 @@ int FORB::distance(const FORB::TDescriptor &a,
 std::string FORB::toString(const FORB::TDescriptor &a)
 {
   stringstream ss;
-  const unsigned char *p = a.ptr<unsigned char>();
+  const unsigned char *p = a.getMat(cv::ACCESS_FAST).ptr<unsigned char>();
   
   for(int i = 0; i < a.cols; ++i, ++p)
   {
@@ -120,7 +120,7 @@ std::string FORB::toString(const FORB::TDescriptor &a)
 void FORB::fromString(FORB::TDescriptor &a, const std::string &s)
 {
   a.create(1, FORB::L, CV_8U);
-  unsigned char *p = a.ptr<unsigned char>();
+  unsigned char *p = a.getMat(cv::ACCESS_FAST).ptr<unsigned char>();
   
   stringstream ss(s);
   for(int i = 0; i < FORB::L; ++i, ++p)
@@ -137,7 +137,7 @@ void FORB::fromString(FORB::TDescriptor &a, const std::string &s)
 // --------------------------------------------------------------------------
 
 void FORB::toMat32F(const std::vector<TDescriptor> &descriptors, 
-  cv::Mat &mat)
+  cv::UMat &mat)
 {
   if(descriptors.empty())
   {
@@ -148,12 +148,12 @@ void FORB::toMat32F(const std::vector<TDescriptor> &descriptors,
   const size_t N = descriptors.size();
   
   mat.create(N, FORB::L*8, CV_32F);
-  float *p = mat.ptr<float>();
+  float *p = mat.getMat(cv::ACCESS_FAST).ptr<float>();
   
   for(size_t i = 0; i < N; ++i)
   {
     const int C = descriptors[i].cols;
-    const unsigned char *desc = descriptors[i].ptr<unsigned char>();
+    const unsigned char *desc = descriptors[i].getMat(cv::ACCESS_FAST).ptr<unsigned char>();
     
     for(int j = 0; j < C; ++j, p += 8)
     {
@@ -172,15 +172,15 @@ void FORB::toMat32F(const std::vector<TDescriptor> &descriptors,
 // --------------------------------------------------------------------------
 
 void FORB::toMat8U(const std::vector<TDescriptor> &descriptors, 
-  cv::Mat &mat)
+  cv::UMat &mat)
 {
   mat.create(descriptors.size(), 32, CV_8U);
   
-  unsigned char *p = mat.ptr<unsigned char>();
+  unsigned char *p = mat.getMat(cv::ACCESS_FAST).ptr<unsigned char>();
   
   for(size_t i = 0; i < descriptors.size(); ++i, p += 32)
   {
-    const unsigned char *d = descriptors[i].ptr<unsigned char>();
+    const unsigned char *d = descriptors[i].getMat(cv::ACCESS_FAST).ptr<unsigned char>();
     std::copy(d, d+32, p);
   }
   
@@ -190,7 +190,7 @@ void FORB::toMat8U(const std::vector<TDescriptor> &descriptors,
 
 void FORB::toArray8U(const TDescriptor &descriptors, unsigned char * array)
 {
-  const unsigned char *d = descriptors.ptr<unsigned char>();
+  const unsigned char *d = descriptors.getMat(cv::ACCESS_FAST).ptr<unsigned char>();
   std::copy(d, d+FORB::L, array);
 }
 
@@ -198,7 +198,7 @@ void FORB::toArray8U(const TDescriptor &descriptors, unsigned char * array)
 
 void FORB::fromArray8U(TDescriptor &descriptors, unsigned char * array)
 {
-  unsigned char *d = descriptors.ptr<unsigned char>();
+  unsigned char *d = descriptors.getMat(cv::ACCESS_FAST).ptr<unsigned char>();
   std::copy(array, array+FORB::L, d);
 }
 

@@ -79,7 +79,7 @@ void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const se
 {
     ros::Time msg_time = msgLeft->header.stamp;
 
-    // Copy the ros image message to cv::Mat.
+    // Copy the ros image message to cv::UMat.
     cv_bridge::CvImageConstPtr cv_ptrLeft, cv_ptrRight;
     try
     {
@@ -93,7 +93,7 @@ void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const se
     }
 
     // ORB-SLAM3 runs in TrackStereo()
-    Sophus::SE3f Tcw = pSLAM->TrackStereo(cv_ptrLeft->image, cv_ptrRight->image, msg_time.toSec());
+    Sophus::SE3f Tcw = pSLAM->TrackStereo(cv_ptrLeft->image.getUMat(cv::ACCESS_FAST), cv_ptrRight->image.getUMat(cv::ACCESS_FAST), msg_time.toSec());
 
     publish_topics(msg_time);
 }

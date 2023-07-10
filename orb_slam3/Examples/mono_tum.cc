@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     double t_track = 0.f;
 
     // Main loop
-    cv::Mat im;
+    cv::UMat im;
     for(int ni=0; ni<nImages; ni++)
     {
         // Read image from file

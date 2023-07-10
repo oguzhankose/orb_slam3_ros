@@ -91,9 +91,11 @@ namespace ORB_SLAM3 {
     }
 
 
-    cv::Mat Pinhole::toK() {
-        cv::Mat K = (cv::Mat_<float>(3, 3)
-                << mvParameters[0], 0.f, mvParameters[2], 0.f, mvParameters[1], mvParameters[3], 0.f, 0.f, 1.f);
+    cv::UMat Pinhole::toK() {
+        // cv::UMat K = (cv::Mat_<float>(3, 3).getUMat(cv::ACCESS_FAST)
+        //         << mvParameters[0], 0.f, mvParameters[2], 0.f, mvParameters[1], mvParameters[3], 0.f, 0.f, 1.f);
+        cv::Mat matK = (cv::Mat_<float>(3, 3) << mvParameters[0], 0.f, mvParameters[2], 0.f, mvParameters[1], mvParameters[3], 0.f, 0.f, 1.f);
+        cv::UMat K = matK.getUMat(cv::ACCESS_FAST);
         return K;
     }
 

@@ -123,8 +123,8 @@ protected:
     float mSigma2;
 
     // Calibration
-    //cv::Mat mK1;
-    //cv::Mat mK2;
+    //cv::UMat mK1;
+    //cv::UMat mK2;
 
     GeometricCamera* pCamera1, *pCamera2;
 

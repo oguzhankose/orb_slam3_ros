@@ -188,9 +188,11 @@ namespace ORB_SLAM3 {
         for(size_t i = 0; i < vKeys1.size(); i++) vPts1[i] = vKeys1[i].pt;
         for(size_t i = 0; i < vKeys2.size(); i++) vPts2[i] = vKeys2[i].pt;
 
-        cv::Mat D = (cv::Mat_<float>(4,1) << mvParameters[4], mvParameters[5], mvParameters[6], mvParameters[7]);
-        cv::Mat R = cv::Mat::eye(3,3,CV_32F);
-        cv::Mat K = this->toK();
+        // cv::UMat D = (cv::Mat_<float>(4,1) << mvParameters[4], mvParameters[5], mvParameters[6], mvParameters[7]);
+        cv::Mat matD = (cv::Mat_<float>(4,1) << mvParameters[4], mvParameters[5], mvParameters[6], mvParameters[7]);
+        cv::UMat D = matD.getUMat(cv::ACCESS_FAST);
+        cv::UMat R = cv::UMat::eye(3,3,CV_32F);
+        cv::UMat K = this->toK();
         cv::fisheye::undistortPoints(vPts1,vPts1,K,D,R,K);
         cv::fisheye::undistortPoints(vPts2,vPts2,K,D,R,K);
 
@@ -201,9 +203,12 @@ namespace ORB_SLAM3 {
     }
 
 
-    cv::Mat KannalaBrandt8::toK() {
-        cv::Mat K = (cv::Mat_<float>(3, 3)
-                << mvParameters[0], 0.f, mvParameters[2], 0.f, mvParameters[1], mvParameters[3], 0.f, 0.f, 1.f);
+    cv::UMat KannalaBrandt8::toK() {
+        // cv::UMat K = (cv::Mat_<float>(3, 3).getUMat(cv::ACCESS_FAST)
+        //         << mvParameters[0], 0.f, mvParameters[2], 0.f, mvParameters[1], mvParameters[3], 0.f, 0.f, 1.f);
+
+        cv::Mat mat = (cv::Mat_<float>(3,3) << mvParameters[0], 0.f, mvParameters[2], 0.f, mvParameters[1], mvParameters[3], 0.f, 0.f, 1.f);
+        cv::UMat K = mat.getUMat(cv::ACCESS_FAST);
         return K;
     }
     Eigen::Matrix3f KannalaBrandt8::toK_() {
@@ -337,7 +342,7 @@ namespace ORB_SLAM3 {
 
 
         Triangulate(p11,p22,Tcw1,Tcw2,x3D);
-        // cv::Mat x3Dt = x3D.t();
+        // cv::UMat x3Dt = x3D.t();
 
         float z1 = x3D(2);
         if(z1 <= 0){

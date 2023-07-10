@@ -127,7 +127,7 @@ int main(int argc, char **argv)
     {
 
         // Main loop
-        cv::Mat im;
+        cv::UMat im;
         vector<ORB_SLAM3::IMU::Point> vImuMeas;
         proccIm = 0;
         cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(3.0, cv::Size(8, 8));

@@ -71,7 +71,7 @@ int main(int argc, char **argv)
     cout << "Images in the sequence: " << nImages << endl << endl;
 
     // Main loop
-    cv::Mat imRGB, imD;
+    cv::UMat imRGB, imD;
     for(int ni=0; ni<nImages; ni++)
     {
         // Read image and depthmap from file

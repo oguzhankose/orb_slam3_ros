@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
     {
 
         // Main loop
-        cv::Mat im;
+        cv::UMat im;
         vector<ORB_SLAM3::IMU::Point> vImuMeas;
         proccIm = 0;
         for(int ni=0; ni<nImages[seq]; ni++, proccIm++)

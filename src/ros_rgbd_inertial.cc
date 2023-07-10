@@ -24,7 +24,7 @@ public:
     ImageGrabber(ImuGrabber *pImuGb): mpImuGb(pImuGb){}
 
     void GrabRGBD(const sensor_msgs::ImageConstPtr& msgRGB, const sensor_msgs::ImageConstPtr& msgD);
-    cv::Mat GetImage(const sensor_msgs::ImageConstPtr &img_msg);
+    cv::UMat GetImage(const sensor_msgs::ImageConstPtr &img_msg);
     void SyncWithImu();
 
     queue<sensor_msgs::ImageConstPtr> imgRGBBuf, imgDBuf;
@@ -114,9 +114,9 @@ void ImageGrabber::GrabRGBD(const sensor_msgs::ImageConstPtr& msgRGB,const senso
     mBufMutex.unlock();
 }
 
-cv::Mat ImageGrabber::GetImage(const sensor_msgs::ImageConstPtr &img_msg)
+cv::UMat ImageGrabber::GetImage(const sensor_msgs::ImageConstPtr &img_msg)
 {
-    // Copy the ros image message to cv::Mat.
+    // Copy the ros image message to cv::UMat.
     cv_bridge::CvImageConstPtr cv_ptr;
     try
     {
@@ -127,7 +127,10 @@ cv::Mat ImageGrabber::GetImage(const sensor_msgs::ImageConstPtr &img_msg)
         ROS_ERROR("cv_bridge exception: %s", e.what());
     }
 
-    return cv_ptr->image.clone();
+    cv::imshow("Image Window", cv_ptr->image.clone());
+    cv::waitKey(0);
+    
+    return cv_ptr->image.clone().getUMat(cv::ACCESS_FAST);
 }
 
 void ImageGrabber::SyncWithImu()
@@ -136,7 +139,7 @@ void ImageGrabber::SyncWithImu()
     {
         if (!imgRGBBuf.empty() && !mpImuGb->imuBuf.empty())
         {
-            cv::Mat im, depth;
+            cv::UMat im, depth;
             double tIm = 0;
 
             tIm = imgRGBBuf.front()->header.stamp.toSec();

@@ -2379,7 +2379,7 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
                 pKF->mTcwBefGBA = pKF->GetPose();
                 //cout << "pKF->mTcwBefGBA: " << pKF->mTcwBefGBA << endl;
                 pKF->SetPose(pKF->mTcwGBA);
-                /*cv::Mat Tco_cn = pKF->mTcwBefGBA * pKF->mTcwGBA.inv();
+                /*cv::UMat Tco_cn = pKF->mTcwBefGBA * pKF->mTcwGBA.inv();
                 cv::Vec3d trasl = Tco_cn.rowRange(0,3).col(3);
                 double dist = cv::norm(trasl);
                 cout << "GBA: KF " << pKF->mnId << " had been moved " << dist << " meters" << endl;
@@ -2388,13 +2388,13 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
                 double desvZ = 0;
                 if(pKF->mbHasHessian)
                 {
-                    cv::Mat hessianInv = pKF->mHessianPose.inv();
+                    cv::UMat hessianInv = pKF->mHessianPose.inv();
 
-                    double covX = hessianInv.at<double>(3,3);
+                    double covX = hessianInv.getMat(cv::ACCESS_FAST).at<double>(3,3);
                     desvX = std::sqrt(covX);
-                    double covY = hessianInv.at<double>(4,4);
+                    double covY = hessianInv.getMat(cv::ACCESS_FAST).at<double>(4,4);
                     desvY = std::sqrt(covY);
-                    double covZ = hessianInv.at<double>(5,5);
+                    double covZ = hessianInv.getMat(cv::ACCESS_FAST).at<double>(5,5);
                     desvZ = std::sqrt(covZ);
                     pKF->mbHasHessian = false;
                 }
@@ -2409,7 +2409,7 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
 
 
                     string strNameFile = pKF->mNameFile;
-                    cv::Mat imLeft = cv::imread(strNameFile, CV_LOAD_IMAGE_UNCHANGED);
+                    cv::UMat imLeft = cv::imread(strNameFile, CV_LOAD_IMAGE_UNCHANGED);
 
                     cv::cvtColor(imLeft, imLeft, CV_GRAY2BGR);
 
@@ -2476,8 +2476,8 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
                         continue;*/
 
                     // Map to non-corrected camera
-                    // cv::Mat Rcw = pRefKF->mTcwBefGBA.rowRange(0,3).colRange(0,3);
-                    // cv::Mat tcw = pRefKF->mTcwBefGBA.rowRange(0,3).col(3);
+                    // cv::UMat Rcw = pRefKF->mTcwBefGBA.rowRange(0,3).colRange(0,3);
+                    // cv::UMat tcw = pRefKF->mTcwBefGBA.rowRange(0,3).col(3);
                     Eigen::Vector3f Xc = pRefKF->mTcwBefGBA * pMP->GetWorldPos();
 
                     // Backproject using corrected camera

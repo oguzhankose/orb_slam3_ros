@@ -24,7 +24,7 @@ class FORB: protected FClass
 public:
 
   /// Descriptor type
-  typedef cv::Mat TDescriptor; // CV_8U
+  typedef cv::UMat TDescriptor; // CV_8U
   /// Pointer to a single descriptor
   typedef const TDescriptor *pDescriptor;
   /// Descriptor length (in bytes)
@@ -66,10 +66,10 @@ public:
    * @param mat (out) NxL 32F matrix
    */
   static void toMat32F(const std::vector<TDescriptor> &descriptors,
-    cv::Mat &mat);
+    cv::UMat &mat);
 
   static void toMat8U(const std::vector<TDescriptor> &descriptors,
-    cv::Mat &mat);
+    cv::UMat &mat);
 
   /**
    * Fills an array with the values from a descriptor
